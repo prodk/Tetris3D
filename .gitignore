@@ -1,0 +1,29 @@
+# ignore these in all commits
+Debug
+*sdf
+*.ncb
+ipch
+*.suo
+*.user
+*.pdb
+
+# ignore in the intermediate commits
+*.md
+Release
+lib
+include
+data
+*.dll
+
+# ignore in the final commit
+PingPong3D/*.dll
+PingPong3D/Release
+
+# allos in the final commit:
+# root Release
+# *.dll
+# include
+# lib
+# data
+# *.md
+
