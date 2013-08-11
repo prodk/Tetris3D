@@ -33,9 +33,6 @@ protected:
 
 	// Inner info.
 	std::vector<std::tr1::shared_ptr<Cube> > cubes;
-	//int angleX;		// Rotation of the figure in the yz-plane, around x-axis, degries.
-	//int angleY;		// Rotation in the xz-plane, around y-axis, degries.
-	//int angleZ;		// Rotation in the xy-plane, around z-axis, degries.
 	float deltaAngleRad;// 90 degrees in radians.
 
 	float pi;
@@ -53,5 +50,52 @@ protected:
 	void createCubes();
 };
 
+//___________________//
+// Ofigure.
+class Ofigure : public Figure
+{
+public:
+	Ofigure(std::size_t nCubes, vector_3d vO, std::size_t idExt, float size);
+	virtual ~Ofigure(void);
+
+protected:
+	void createCubes();
+};
+
+//___________________//
+// Sfigure.
+class Sfigure : public Figure
+{
+public:
+	Sfigure(std::size_t nCubes, vector_3d vO, std::size_t idExt, float size);
+	virtual ~Sfigure(void);
+
+protected:
+	void createCubes();
+};
+
+//___________________//
+// Ifigure.
+class Ifigure : public Figure
+{
+public:
+	Ifigure(std::size_t nCubes, vector_3d vO, std::size_t idExt, float size);
+	virtual ~Ifigure(void);
+
+protected:
+	void createCubes();
+};
+
+//___________________//
+// Tfigure.
+class Tfigure : public Figure
+{
+public:
+	Tfigure(std::size_t nCubes, vector_3d vO, std::size_t idExt, float size);
+	virtual ~Tfigure(void);
+
+protected:
+	void createCubes();
+};
 
 #endif // FIGURE_H

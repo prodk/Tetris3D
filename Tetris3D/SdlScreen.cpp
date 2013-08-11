@@ -783,7 +783,7 @@ PlayScreen::PlayScreen(int idExt, float w, float h, SDL_Surface* s, TEXTURE_PTR_
 	flDeltaPaddle = 0.01;
 
 	bKeyDown = false;
-	iFrameDelayMove = 50;
+	iFrameDelayMove = 200;
 
 	// Optimize the string output - load string textures only once and then reuse them.
 	loadStringTextures();
@@ -1368,7 +1368,11 @@ void PlayScreen::play(Logic &logic, SDL_Event sdlEvent)
 		std::size_t idFig = 0;
 		int size =1.;
 		currentFigure = 
-			std::tr1::shared_ptr<Lfigure>( new Lfigure(nOfCubes, origin, idFig, size) );
+			//std::tr1::shared_ptr<Lfigure>( new Lfigure(nOfCubes, origin, idFig, size) );
+			//std::tr1::shared_ptr<Figure>( new Ofigure(nOfCubes, origin, idFig, size) );
+			//std::tr1::shared_ptr<Figure>( new Sfigure(nOfCubes, origin, idFig, size) );
+			//std::tr1::shared_ptr<Figure>( new Ifigure(nOfCubes, origin, idFig, size) );
+			std::tr1::shared_ptr<Figure>( new Tfigure(nOfCubes, origin, idFig, size) );
 	}
 
 	// Rotate the view at the beginning of a new round.
