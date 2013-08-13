@@ -1366,7 +1366,7 @@ void PlayScreen::play(Logic &logic, SDL_Event sdlEvent)
 		std::size_t nOfCubes = 4;
 		vector_3d origin(0.5, 4.5, 0.5);
 		std::size_t idFig = 0;
-		int size =1.;
+		int size =1;
 		currentFigure = 
 			//std::tr1::shared_ptr<Lfigure>( new Lfigure(nOfCubes, origin, idFig, size) );
 			//std::tr1::shared_ptr<Figure>( new Ofigure(nOfCubes, origin, idFig, size) );
