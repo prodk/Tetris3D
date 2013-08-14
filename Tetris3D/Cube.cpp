@@ -84,3 +84,15 @@ void Cube::setOrigin(vector_3d vO)
 {
 	vOrigin = vO;
 }
+
+const vector_3d& Cube::getCenter()
+{
+	return vCenter;
+}
+
+//void Cube::getCellIndeces(int *x, int *plane, int *z)
+//{
+//	*x = vCenter[0]/size;
+//	*plane = vCenter[1]/size;
+//	*z = vCenter[2]/size;
+//}

@@ -23,14 +23,17 @@ public:
 
 	// Draw mesh functions.
 	void drawLeftFace(int x, int planeId, int z);
-	void drawRightFace();
-	void drawBottomFace();
+	void drawRightFace(int x, int planeId, int z);
+	void drawBottomFace(int x, int planeId, int z);
+
+	void setPolygonMode(int mode);
 
 private:
 	//int x;					// Lateral index.
 	//int z;					// Lateral index.
 	//int planeId;			// In what plane the cell is located.
 	int cubeId;				// An id of the fixed cube, -1 otherwise.
+	int polygonMode;
 
 	float cubeSize;			// Required for drawing.
 };
@@ -46,6 +49,15 @@ public:
 
 	bool isFilled();		// True if all the cells in the plane contain a fixed cube.
 	void fillCell(int x, int z, int cubeId);// Mark the cell as containing a fixed cube.
+	//void draw();
+	void drawLeftPlane();
+	void drawBottomPlane();
+	void drawRightPlane();
+
+	void setFilledCellToDraw(int x, int z);
+	void resetFilledCellToDraw(int x, int z);
+	void setBottomCellToDraw(int x, int z);
+	void resetBottomCellToDraw(int x, int z);
 
 private:
 	void initCells();		// Set cube index in all the cells to -1.
@@ -69,6 +81,13 @@ public:
 	FixedCubes(int planes, int x, int z, float size);
 	~FixedCubes(void);
 
+	void draw();
+	void collide();
+	void setFilledCellToDraw(CellIndeces &id);
+	void resetFilledCellToDraw(CellIndeces &id);
+	void setBottomCellToDraw(CellIndeces &id);
+	void resetBottomCellToDraw(CellIndeces &id);
+
 private:
 	void createPlanes();
 	void annihilateLayer();
@@ -80,8 +99,9 @@ private:
 	int iNumOfCellsZ;
 
 	float cubeSize;
+	int bottomPlane;
 
-	std::vector<std::tr1::shared_ptr<PlaneOfCells> > plane;		// Vector of planes containing cells.
+	std::vector<std::tr1::shared_ptr<PlaneOfCells> > plane;	// Vector of planes containing cells.
 
 	std::vector<std::tr1::shared_ptr<Cube> > cubes;	// Pointers to the fixed cubes.
 };

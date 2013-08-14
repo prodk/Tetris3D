@@ -785,6 +785,10 @@ PlayScreen::PlayScreen(int idExt, float w, float h, SDL_Surface* s, TEXTURE_PTR_
 	bKeyDown = false;
 	iFrameDelayMove = 200;
 
+	cubesPerFigure = 4;
+	currentCells.resize(cubesPerFigure);
+	previousCells.resize(cubesPerFigure);
+
 	// Optimize the string output - load string textures only once and then reuse them.
 	loadStringTextures();
 }
@@ -799,6 +803,14 @@ PlayScreen::~PlayScreen()
 
 void PlayScreen::initMembers(const Logic &logic)
 {
+	iNumOfPlanes = 10;
+	iNumOfCellsX = 10;
+	iNumOfCellsZ = 10;
+	cubeSize = 1.;
+	// Get a fresh set of cells that track fixed cubes.
+	fixedCubes = 
+		std::tr1::shared_ptr<FixedCubes>( new FixedCubes(iNumOfPlanes, iNumOfCellsX, iNumOfCellsZ, cubeSize) );
+
 	iCurRound = logic.iRound - 1;
 	flBoxWidth = roundParams[iCurRound]->flBoxWidth;
 	flBoxHeight = roundParams[iCurRound]->flBoxHeight;
@@ -1039,7 +1051,9 @@ void PlayScreen::doDrawing(Logic &logic)
 	initView();
 	drawAxes();
 
-	glutWireCube(10.);
+	//glutWireCube(10.);
+
+	fixedCubes->draw();
 
 	currentFigure->draw();
 
@@ -1176,6 +1190,10 @@ void PlayScreen::handleKeyDown(const SDL_Event& sdle, Logic &logic)
 			currentFigure->rotateX();
 		break;
 
+	case SDLK_n:
+		currentFigure->moveY();
+		break;
+
 	case SDLK_LEFT:
 		{
 			int factor = -1;
@@ -1309,8 +1327,18 @@ void PlayScreen::doLogic(Logic &logic)
 	if(count % iFrameDelayMove == 0){
 		count = 0;
 		
-		currentFigure->moveY();// Fall in y direction.
+		//currentFigure->moveY();// Fall in y direction.
 	}
+
+	// Save current filled cells to the previous cells.
+	previousCells = currentCells;
+
+	// Get new filled cells.
+	currentFigure->getCubeIndeces(currentCells);
+
+	// Specify what cells should be filled/unfilled.
+	manageCellsFilling();
+
 	// Move the shapes.
 	//bool bReset = false;	// Whether to move the ball to the origin.
 	//for(std::size_t i = 0; i < shapes.size(); i++)
@@ -1364,15 +1392,15 @@ void PlayScreen::play(Logic &logic, SDL_Event sdlEvent)
 		setupNewRound(logic);
 
 		std::size_t nOfCubes = 4;
-		vector_3d origin(0.5, 4.5, 0.5);
+		vector_3d origin(0., 0., 0.);	// Must be multiple of the cube size.
 		std::size_t idFig = 0;
 		int size =1;
 		currentFigure = 
-			//std::tr1::shared_ptr<Lfigure>( new Lfigure(nOfCubes, origin, idFig, size) );
-			//std::tr1::shared_ptr<Figure>( new Ofigure(nOfCubes, origin, idFig, size) );
-			//std::tr1::shared_ptr<Figure>( new Sfigure(nOfCubes, origin, idFig, size) );
-			//std::tr1::shared_ptr<Figure>( new Ifigure(nOfCubes, origin, idFig, size) );
-			std::tr1::shared_ptr<Figure>( new Tfigure(nOfCubes, origin, idFig, size) );
+			//std::tr1::shared_ptr<Figure>( new Lfigure(nOfCubes, origin, idFig, size, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+			//std::tr1::shared_ptr<Figure>( new Ofigure(nOfCubes, origin, idFig, size, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+			std::tr1::shared_ptr<Figure>( new Sfigure(nOfCubes, origin, idFig, size, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+			//std::tr1::shared_ptr<Figure>( new Ifigure(nOfCubes, origin, idFig, size, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+			//std::tr1::shared_ptr<Figure>( new Tfigure(nOfCubes, origin, idFig, size, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
 	}
 
 	// Rotate the view at the beginning of a new round.
@@ -1565,4 +1593,31 @@ void PlayScreen::drawScoreAndRoundOptimized(Logic &logic)
 	}
 
 	glPopMatrix();
+}
+
+void PlayScreen::manageCellsFilling()
+{
+	// At first unset the previous cells.
+	std::size_t i;
+	CellIndeces ci;
+	for(i = 0; i < previousCells.size(); ++i)
+		if(previousCells[i].plane >= 0){
+			fixedCubes->resetFilledCellToDraw(previousCells[i]);
+			// Reset the bottom plane.
+			ci.plane = 0;
+			ci.x = previousCells[i].x;
+			ci.z = previousCells[i].z;
+			fixedCubes->resetBottomCellToDraw(ci);
+		}
+
+	// Then set the filled cells.
+	for(i = 0; i < currentCells.size(); ++i)
+		if(currentCells[i].plane >= 0){
+			fixedCubes->setFilledCellToDraw(currentCells[i]);
+			// Set the bottom plane.
+			ci.plane = 0;
+			ci.x = currentCells[i].x;
+			ci.z = currentCells[i].z;
+			fixedCubes->setBottomCellToDraw(ci);
+		}
 }

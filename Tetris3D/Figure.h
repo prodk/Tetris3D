@@ -7,7 +7,7 @@
 class Figure
 {
 public:
-	Figure(std::size_t nCubes, vector_3d vO, std::size_t idExt, float size);
+	Figure(std::size_t nCubes, vector_3d vO, std::size_t idExt, float size, int x, int p, int z);
 	virtual ~Figure(void);
 
 	// Functions to override.
@@ -21,6 +21,8 @@ public:
 	void moveY();
 	void moveZ(int factor);
 
+	void getCubeIndeces(std::vector<CellIndeces> &id);
+
 protected:
 	virtual void createCubes() = 0;
 
@@ -30,6 +32,9 @@ protected:
 	std::size_t iNumOfCubes;
 	std::size_t id;
 	float cubeSize;
+	int iNumOfCellsX;
+	int iNumOfPlanes;
+	int iNumOfCellsZ;
 
 	// Inner info.
 	std::vector<std::tr1::shared_ptr<Cube> > cubes;
@@ -43,7 +48,8 @@ protected:
 class Lfigure : public Figure
 {
 public:
-	Lfigure(std::size_t nCubes, vector_3d vO, std::size_t idExt, float size);
+	Lfigure(std::size_t nCubes, vector_3d vO, std::size_t idExt, 
+		float size, int x, int p, int z);
 	virtual ~Lfigure(void);
 
 protected:
@@ -55,7 +61,8 @@ protected:
 class Ofigure : public Figure
 {
 public:
-	Ofigure(std::size_t nCubes, vector_3d vO, std::size_t idExt, float size);
+	Ofigure(std::size_t nCubes, vector_3d vO, std::size_t idExt, 
+		float size, int x, int p, int z);
 	virtual ~Ofigure(void);
 
 protected:
@@ -67,7 +74,8 @@ protected:
 class Sfigure : public Figure
 {
 public:
-	Sfigure(std::size_t nCubes, vector_3d vO, std::size_t idExt, float size);
+	Sfigure(std::size_t nCubes, vector_3d vO, std::size_t idExt, 
+		float size, int x, int p, int z);
 	virtual ~Sfigure(void);
 
 protected:
@@ -79,7 +87,8 @@ protected:
 class Ifigure : public Figure
 {
 public:
-	Ifigure(std::size_t nCubes, vector_3d vO, std::size_t idExt, float size);
+	Ifigure(std::size_t nCubes, vector_3d vO, std::size_t idExt, 
+		float size, int x, int p, int z);
 	virtual ~Ifigure(void);
 
 protected:
@@ -91,7 +100,8 @@ protected:
 class Tfigure : public Figure
 {
 public:
-	Tfigure(std::size_t nCubes, vector_3d vO, std::size_t idExt, float size);
+	Tfigure(std::size_t nCubes, vector_3d vO, std::size_t idExt, 
+		float size, int x, int p, int z);
 	virtual ~Tfigure(void);
 
 protected:

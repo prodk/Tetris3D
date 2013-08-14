@@ -13,6 +13,7 @@ Cell::Cell()
 {
 	cubeId = -1;
 	cubeSize = 1.;
+	polygonMode = GL_LINE;
 }
 
 Cell::~Cell()
@@ -40,16 +41,11 @@ void Cell::drawLeftFace(int x, int planeId, int z)
 
 	glDisable(GL_LIGHTING);
 	glColor3f(0., 1., 0.);
+
+	glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
 	
 	glTranslatef(x*cubeSize, planeId*cubeSize, z*cubeSize);	// Translate to the corresp cell.
 	// Draw a square in the yz-plane.
-	/*glBegin( GL_QUADS );
-	glVertex3d(0.0, 0.0, 0.0);
-	glVertex3d(0., 0.0, cubeSize);
-	glVertex3d(0., cubeSize, cubeSize);
-	glVertex3d(0.0, cubeSize, 0.0);	
-	glEnd();*/
-
 	glBegin(GL_POLYGON);
 
 	glNormal3f(-1., 0., 0.);
@@ -71,12 +67,73 @@ void Cell::drawLeftFace(int x, int planeId, int z)
 	glPopMatrix();
 }
 
-void Cell::drawRightFace()
+void Cell::drawRightFace(int x, int planeId, int z)
 {
+	glPushMatrix();
+
+	glDisable(GL_LIGHTING);
+	glColor3f(0., 1., 0.);
+
+	glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
+	
+	glTranslatef(x*cubeSize, planeId*cubeSize, z*cubeSize);	// Translate to the corresp cell.
+	// Draw a square in the yz-plane.
+	glBegin(GL_POLYGON);
+
+	glNormal3f(1., 0., 0.);
+    glVertex3f(cubeSize, 0.0, 0.0);    
+
+	glNormal3f(1., 0., 0.);
+    glVertex3f(cubeSize, 0.0, cubeSize);
+    	
+	glNormal3f(1., 0., 0.);
+    glVertex3f(cubeSize, cubeSize, cubeSize);
+
+	glNormal3f(1., 0., 0.);
+	glVertex3f(cubeSize, cubeSize, 0.0);
+	
+	glEnd();
+
+	glDisable( GL_TEXTURE_2D );
+	glEnable(GL_LIGHTING);
+	glPopMatrix();
 }
 
-void Cell::drawBottomFace()
+void Cell::drawBottomFace(int x, int planeId, int z)
 {
+	glPushMatrix();
+
+	glDisable(GL_LIGHTING);
+	glColor3f(0., 1., 0.);
+
+	glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
+	
+	glTranslatef(x*cubeSize, planeId*cubeSize, z*cubeSize);	// Translate to the corresp cell.
+	// Draw a square in the xz-plane.
+	glBegin(GL_POLYGON);
+
+	glNormal3f(0., -1., 0.);
+    glVertex3f(0.0, 0.0, 0.0);    
+
+	glNormal3f(0., -1., 0.);
+    glVertex3f(0., 0.0, cubeSize);
+    	
+	glNormal3f(0., -1., 0.);
+    glVertex3f(cubeSize, 0., cubeSize);
+
+	glNormal3f(0., -1., 0.);
+	glVertex3f(cubeSize, 0., 0.0);
+	
+	glEnd();
+
+	glDisable( GL_TEXTURE_2D );
+	glEnable(GL_LIGHTING);
+	glPopMatrix();
+}
+
+void Cell::setPolygonMode(int mode)
+{
+	polygonMode = mode;
 }
 
 //----------------------------
@@ -122,6 +179,61 @@ void PlaneOfCells::fillCell(int x, int z, int cubeId)// Mark the cell as contain
 	cell[x*iNumOfCellsX + z].setCubeIdx(cubeId);
 }
 
+void PlaneOfCells::drawLeftPlane()
+{
+	int ix = 0;
+	for(int iz = 0; iz < iNumOfCellsZ; iz++)
+		cell[ix*iNumOfCellsX + iz].drawLeftFace(ix, planeId, iz);
+}
+
+void PlaneOfCells::drawBottomPlane()
+{
+	for(int ix = 0; ix < iNumOfCellsX; ix++)
+		for(int iz = 0; iz < iNumOfCellsZ; iz++){			
+			cell[ix*iNumOfCellsX + iz].drawBottomFace(ix, planeId, iz);
+		}
+}
+
+void PlaneOfCells::drawRightPlane()
+{
+	int ix = iNumOfCellsX - 1;
+	for(int iz = 0; iz < iNumOfCellsZ; iz++)
+		cell[ix*iNumOfCellsX + iz].drawRightFace(ix, planeId, iz);
+}
+
+void PlaneOfCells::setFilledCellToDraw(int x, int z)
+{
+	// Set the leftmost plane.
+	int ix = 0;
+	cell[ix*iNumOfCellsX + z].setPolygonMode(GL_FILL);
+
+	// Set the rightmost plane.
+	ix = iNumOfCellsX - 1;
+	cell[ix*iNumOfCellsX + z].setPolygonMode(GL_FILL);
+}
+
+void PlaneOfCells::resetFilledCellToDraw(int x, int z)
+{
+	//cell[x*iNumOfCellsX + z].setPolygonMode(GL_LINE);
+	// Reset the leftmost plane.
+	int ix = 0;
+	cell[ix*iNumOfCellsX + z].setPolygonMode(GL_LINE);
+
+	// Reset the rightmost plane.
+	ix = iNumOfCellsX - 1;
+	cell[ix*iNumOfCellsX + z].setPolygonMode(GL_LINE);
+}
+
+void PlaneOfCells::setBottomCellToDraw(int x, int z)
+{
+	cell[x*iNumOfCellsX + z].setPolygonMode(GL_FILL);	
+}
+
+void PlaneOfCells::resetBottomCellToDraw(int x, int z)
+{
+	cell[x*iNumOfCellsX + z].setPolygonMode(GL_LINE);	
+}
+
 //----------------------------
 // FixedCubes.
 FixedCubes::FixedCubes(int planes, int x, int z, float size)
@@ -131,6 +243,8 @@ FixedCubes::FixedCubes(int planes, int x, int z, float size)
 	iNumOfCellsX = x;
 	iNumOfCellsZ = z;
 	cubeSize = size;
+
+	bottomPlane = 0;		// Plane on which we highlight cells.
 
 	// Create the required number of planes.
 	createPlanes();
@@ -151,7 +265,43 @@ void FixedCubes::createPlanes()
 	}
 }
 
+void FixedCubes::draw()
+{
+	glPushMatrix();
+
+	// Translate the coordinates, such that the origin is at the center of the scene.
+	glTranslatef(-0.5*cubeSize*iNumOfCellsX, -0.5*cubeSize*iNumOfPlanes, -0.5*cubeSize*iNumOfCellsZ);
+
+	for(std::size_t i = 0; i < plane.size(); i++){
+		plane[i]->drawLeftPlane();
+		plane[i]->drawRightPlane();
+	}
+
+	plane[0]->drawBottomPlane();
+
+	glPopMatrix();
+}
+
 void FixedCubes::annihilateLayer()
 {
 }
-	
+
+void FixedCubes::setFilledCellToDraw(CellIndeces &id)
+{
+	plane[id.plane]->setFilledCellToDraw(id.x, id.z);
+}
+
+void FixedCubes::resetFilledCellToDraw(CellIndeces &id)
+{
+	plane[id.plane]->resetFilledCellToDraw(id.x, id.z);
+}
+
+void FixedCubes::setBottomCellToDraw(CellIndeces &id)
+{
+	plane[bottomPlane]->setBottomCellToDraw(id.x, id.z);
+}
+
+void FixedCubes::resetBottomCellToDraw(CellIndeces &id)
+{
+	plane[bottomPlane]->resetBottomCellToDraw(id.x, id.z);
+}

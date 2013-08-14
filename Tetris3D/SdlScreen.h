@@ -9,6 +9,7 @@
 //#include "Wall.h"
 //#include "Paddle.h"
 #include <map>
+#include "FixedCubes.h"
 
 typedef std::vector<std::tr1::shared_ptr<TEXTURE> > TEXTURE_PTR_ARRAY;
 
@@ -197,11 +198,24 @@ private:
 		float angley);
 	void drawScoreAndRoundOptimized(Logic &logic);
 
+	void manageCellsFilling();// Specify which cells should be drawn as filled.
+
 	// Private members.
 private:
 	// Game logic.
 	std::tr1::shared_ptr<Figure> currentFigure;
 	int iFrameDelayMove;	// Number of frames to wait before moves.
+
+	int iNumOfPlanes;
+	int iNumOfCellsX;
+	int iNumOfCellsZ;
+	float cubeSize;
+	std::tr1::shared_ptr<FixedCubes> fixedCubes;
+	std::vector<std::tr1::shared_ptr<Cube> > cubes;
+
+	int cubesPerFigure;
+	std::vector<CellIndeces> currentCells;	// Indeces of cells that are occupied by the figure.
+	std::vector<CellIndeces> previousCells;// Cells that were occupied on the previous step.
 	//enum {BALL, WALL, LEFT_PADDLE, RIGHT_PADDLE};	// Enum hack for shape types.
 
 	// A vector of pointers to Shapes. Ball is stored in the 0th item.	
@@ -229,9 +243,9 @@ private:
 	bool bKeyDown;
 
 	// Sizes/other parameters.
-	float flBoxWidth;
-	float flBoxHeight;
-	float flBoxThickness;
+	float flBoxWidth;		// !May be redundant.
+	float flBoxHeight;		// !May be redundant.
+	float flBoxThickness;	// !May be redundant.
 	//float flPaddleRadius;
 	//float flBallVel;
 	//float flBallDeltaVel;			// Increment of the Ball's velocity after reflection.
