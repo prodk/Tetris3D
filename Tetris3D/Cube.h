@@ -13,12 +13,24 @@ public:
 
 	void draw();
 	float getSize() const;
+
 	void rotateX(float angle);	// Rotate in the yz-plane, around x-axis.
 	void rotateY(float angle);	// Rotate in the xz-plane, around y-axis.
 	void rotateZ(float angle);	// Rotate in the xy-plane, around z-axis.
+
+	// Emulate rotation of the cube to check the boundaries. Look at the center of the cube.
+	vector_3d testRotateX(float angle);	
+	vector_3d testRotateY(float angle);
+	vector_3d testRotateZ(float angle);
+
 	void moveX(int factor);
 	void moveY();				// Fall.
 	void moveZ(int factor);
+
+	// Emulate the movement of the cube to check the boundaries.
+	vector_3d testMoveX(int factor);
+	vector_3d testMoveZ(int factor);
+
 	void setOrigin(vector_3d vO);
 
 	const vector_3d& getCenter();

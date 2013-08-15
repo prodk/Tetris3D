@@ -228,8 +228,10 @@ private:
 
 	// View rotation with mouse.
 	float xViewOld;					// Vars for rotate view.
+	float yViewOld;
 	float angleViewY;				// Angle to rotate the view around Y.
 	float angleViewZ;				// Rotate view around Z.
+	float angleViewX;				// Rotate view around X.
 	float flScaleAll;				// Zooming factor.
 	float angleViewYMax;			// Initial rotation before a round starts.
 	float deltaAngleY;				// Increments of the initial rotation.

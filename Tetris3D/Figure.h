@@ -21,6 +21,14 @@ public:
 	void moveY();
 	void moveZ(int factor);
 
+	// Prevent from movement/rotation that results in a cube outside the scene.
+	bool testMoveX(int factor);	// Returns true if the figure doesn't move outside the scene.
+	bool testMoveZ(int factor); // Returns true if the figure doesn't move outside the scene.
+
+	bool testRotateX();
+	bool testRotateY();
+	bool testRotateZ();
+
 	void getCubeIndeces(std::vector<CellIndeces> &id);
 
 protected:

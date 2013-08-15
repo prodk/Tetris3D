@@ -7,9 +7,6 @@ Figure::Figure(std::size_t nCubes, vector_3d vO, std::size_t idExt,
 	iNumOfCubes(nCubes), vOrigin(vO), id(idExt), cubeSize(size),
 		iNumOfCellsX(x), iNumOfPlanes(p), iNumOfCellsZ(z)
 {
-	//angleX = 0;
-	//angleY = 0;
-	//angleZ = 0;
 	pi = 4*std::atan(1.);
 	deltaAngleRad = 0.5*pi;
 }
@@ -26,8 +23,11 @@ void Figure::draw()
 
 void Figure::moveX(int factor)
 {
-	for(std::size_t i = 0; i < cubes.size(); ++i)
-		cubes[i]->moveX(factor);
+	// Move only if the figure doesn't go beyond the borders of the scene.
+	if( testMoveX(factor) ){
+		for(std::size_t i = 0; i < cubes.size(); ++i)
+			cubes[i]->moveX(factor);
+	}
 }
 
 void Figure::moveY()
@@ -38,29 +38,139 @@ void Figure::moveY()
 
 void Figure::moveZ(int factor)
 {
-	for(std::size_t i = 0; i < cubes.size(); ++i)
-		cubes[i]->moveZ(factor);
+	// Move only inside the scene.
+	if( testMoveZ(factor) ){
+		for(std::size_t i = 0; i < cubes.size(); ++i)
+			cubes[i]->moveZ(factor);
+	}
+}
+
+bool Figure::testMoveX(int factor)
+{
+	float n;
+	vector_3d testCenter;
+	float shiftX = 0.5*cubeSize*iNumOfCellsX;
+
+	for(std::size_t i = 0; i < cubes.size(); ++i){
+		testCenter = cubes[i]->testMoveX(factor);
+		n = (testCenter[0] + shiftX)/cubeSize;
+		if( (n < 0) || (n >= iNumOfCellsX) )
+			return false;
+	}
+
+	return true;
+}
+
+bool Figure::testMoveZ(int factor)
+{
+	float n;
+	vector_3d testCenter;
+	float shiftZ = 0.5*cubeSize*iNumOfCellsZ;
+
+	for(std::size_t i = 0; i < cubes.size(); ++i){
+		testCenter = cubes[i]->testMoveZ(factor);
+		n = (testCenter[2] + shiftZ)/cubeSize;
+		if( (n < 0) || (n >= iNumOfCellsZ) )
+			return false;
+	}
+
+	return true;
 }
 
 void Figure::rotateX()
 {
-	for(std::size_t i = 0; i < cubes.size(); ++i)
-		cubes[i]->rotateX(deltaAngleRad);
+	// Rotate only after ensuring that the figure will not leave the borders of the scene.
+	if( testRotateX() ){
+		for(std::size_t i = 0; i < cubes.size(); ++i)
+			cubes[i]->rotateX(deltaAngleRad);
+	}
 }
 
 void Figure::rotateY()
 {
-	for(std::size_t i = 0; i < cubes.size(); ++i)
-		cubes[i]->rotateY(deltaAngleRad);
+	// Rotate only after ensuring that the figure will not leave the borders of the scene.
+	if( testRotateY() ){
+		for(std::size_t i = 0; i < cubes.size(); ++i)
+			cubes[i]->rotateY(deltaAngleRad);
+	}
 }
 
 void Figure::rotateZ()
 {
-	//angleZ = (angleZ + 90) % 360;
-	//float angleRad =  pi*double(angleZ)/180.;
+	// Rotate only after ensuring that the figure will not leave the borders of the scene.
+	if( testRotateZ() ){
+		for(std::size_t i = 0; i < cubes.size(); ++i)
+			cubes[i]->rotateZ(deltaAngleRad);
+	}
+}
 
-	for(std::size_t i = 0; i < cubes.size(); ++i)
-		cubes[i]->rotateZ(deltaAngleRad);
+bool Figure::testRotateX()
+{
+	// For rotation around x-axis look at the z and y directions.
+	float n;
+	vector_3d testCenter;
+	float shiftY = 0.5*cubeSize*iNumOfPlanes;
+	float shiftZ = 0.5*cubeSize*iNumOfCellsZ;
+
+	for(std::size_t i = 0; i < cubes.size(); ++i){
+		testCenter = cubes[i]->testRotateX(deltaAngleRad);
+		// y-direction.
+		n = (testCenter[1] + shiftY)/cubeSize;
+		if( (n < 0) || (n >= iNumOfPlanes) )
+			return false;
+		// z-direction.
+		n = (testCenter[2] + shiftZ)/cubeSize;
+		if( (n < 0) || (n >= iNumOfCellsZ) )
+			return false;
+	}
+
+	return true;
+}
+
+bool Figure::testRotateY()
+{
+	// For rotation around y-axis look at the x- and z-directions;
+	float n;
+	vector_3d testCenter;
+	float shiftX = 0.5*cubeSize*iNumOfCellsX;
+	float shiftZ = 0.5*cubeSize*iNumOfCellsZ;
+
+	for(std::size_t i = 0; i < cubes.size(); ++i){
+		testCenter = cubes[i]->testRotateY(deltaAngleRad);
+		// x-direction.
+		n = (testCenter[0] + shiftX)/cubeSize;
+		if( (n < 0) || (n >= iNumOfCellsX) )
+			return false;
+		// z-direction.
+		n = (testCenter[2] + shiftZ)/cubeSize;
+		if( (n < 0) || (n >= iNumOfCellsZ) )
+			return false;
+	}
+
+	return true;
+}
+
+bool Figure::testRotateZ()
+{
+	// For rotation around z-axis look at the x- and y-directions;
+	float n;
+	vector_3d testCenter;
+	float shiftX = 0.5*cubeSize*iNumOfCellsX;
+	float shiftY = 0.5*cubeSize*iNumOfPlanes;
+
+	for(std::size_t i = 0; i < cubes.size(); ++i){
+		testCenter = cubes[i]->testRotateZ(deltaAngleRad);
+		// x-direction.
+		n = (testCenter[0] + shiftX)/cubeSize;
+		if( (n < 0) || (n >= iNumOfCellsX) )
+			return false;
+		// z-direction.
+		n = (testCenter[1] + shiftY)/cubeSize;
+		if( (n < 0) || (n >= iNumOfPlanes) )
+			return false;
+	}
+
+	return true;
 }
 
 void Figure::getCubeIndeces(std::vector<CellIndeces> &id)
@@ -107,7 +217,12 @@ void Lfigure::createCubes()
 	// Head cube.
 	std::size_t id = 0;
 	vector_3d center = vOrigin;
-	center[1] -= cubeSize;	// Put the origin in the middle of the figure.
+
+	// Put the rotation center to one of the vertices.
+	center[0] += 0.5*cubeSize;
+	center[1] -= 1.5*cubeSize;
+	center[2] += 0.5*cubeSize;
+
 	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(id, center, cubeSize) );
 	cubes[id]->setOrigin(vOrigin);
 
@@ -149,8 +264,9 @@ void Ofigure::createCubes()
 	// Left top cube.
 	std::size_t id = 0;
 	vector_3d center = vOrigin;
-	center[0] -= 0.5*cubeSize;	// Put the origin in the middle of the figure.
+	center[0] += 0.5*cubeSize;	// Put the origin in the middle of the figure.
 	center[1] += 0.5*cubeSize;	// Put the origin in the middle of the figure.
+	center[2] += 0.5*cubeSize;	// Put the origin in the middle of the figure.
 	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(id, center, cubeSize) );
 	cubes[id]->setOrigin(vOrigin);
 

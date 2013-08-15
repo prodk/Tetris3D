@@ -90,9 +90,70 @@ const vector_3d& Cube::getCenter()
 	return vCenter;
 }
 
-//void Cube::getCellIndeces(int *x, int *plane, int *z)
-//{
-//	*x = vCenter[0]/size;
-//	*plane = vCenter[1]/size;
-//	*z = vCenter[2]/size;
-//}
+vector_3d Cube::testRotateX(float angle)
+{
+	vector_3d testCenter;
+	// Modify the coordinates of teh cube's center.
+	float yNew = (vCenter[1] - vOrigin[1])*std::cos(angle) - 
+				(vCenter[2] - vOrigin[2])*std::sin(angle);
+	float zNew = (vCenter[1] - vOrigin[1])*std::sin(angle) + 
+				(vCenter[2] - vOrigin[2])*std::cos(angle);
+
+	testCenter[0] = vCenter[0];
+	testCenter[1] = yNew + vOrigin[1];
+	testCenter[2] = zNew + vOrigin[2];
+
+	return testCenter;
+}
+
+vector_3d Cube::testRotateY(float angle)
+{
+	vector_3d testCenter;
+
+	// Modify the coordinates of teh cube's center.
+	float xNew = (vCenter[0] - vOrigin[0])*std::cos(angle) - 
+				(vCenter[2] - vOrigin[2])*std::sin(angle);
+	float zNew = (vCenter[0] - vOrigin[0])*std::sin(angle) + 
+				(vCenter[2] - vOrigin[2])*std::cos(angle);
+
+	testCenter[1] = vCenter[1];
+	testCenter[0] = xNew + vOrigin[0];
+	testCenter[2] = zNew + vOrigin[2];
+
+	return testCenter;
+}
+
+vector_3d Cube::testRotateZ(float angle)
+{
+	vector_3d testCenter;
+
+	// Modify the coordinates of teh cube's center.
+	float xNew = (vCenter[0] - vOrigin[0])*std::cos(angle) - 
+				(vCenter[1] - vOrigin[1])*std::sin(angle);
+	float yNew = (vCenter[0] - vOrigin[0])*std::sin(angle) + 
+		        (vCenter[1] - vOrigin[1])*std::cos(angle);
+
+	testCenter[0] = xNew + vOrigin[0];
+	testCenter[1] = yNew + vOrigin[1];
+	testCenter[2] = vCenter[2];
+
+	return testCenter;
+}
+
+vector_3d Cube::testMoveX(int factor)
+{
+	vector_3d testCenter;
+	testCenter = vCenter;	
+	testCenter[0] += factor*size;
+
+	return testCenter;
+}
+
+vector_3d Cube::testMoveZ(int factor)
+{
+	vector_3d testCenter;
+	testCenter = vCenter;	
+	testCenter[2] += factor*size;
+
+	return testCenter;
+}

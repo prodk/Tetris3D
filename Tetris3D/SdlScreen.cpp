@@ -778,7 +778,7 @@ PlayScreen::PlayScreen(int idExt, float w, float h, SDL_Surface* s, TEXTURE_PTR_
 	//compWallIdx = -1;
 	iShowMessageCount = 0;
 	iMaxShowMessageCount = 100;
-	flDeltaAngleViewZ = 0.3;
+	flDeltaAngleViewZ = 1.;//0.3;
 	flDeltaScale = 0.01;
 	flDeltaPaddle = 0.01;
 
@@ -822,10 +822,12 @@ void PlayScreen::initMembers(const Logic &logic)
 
 	// 'magic numbers'.
 	xViewOld = 0.;
+	yViewOld = 0.;
 	angleViewY = 10.;					// Initial angle (around y) of the view.
 	angleViewYMax = 10.;//75.;				// Final initial angle view.
 	deltaAngleY = angleViewYMax * 0.02;	// Increments of the angle to rotate at the beginning.
 	angleViewZ = 0.;
+	angleViewX = 0.;
 	//bPaddlePicked = false;
 	xPaddleOld = yPaddleOld = 0.;
 	flZaxisDistance = 15.f;
@@ -1083,6 +1085,10 @@ void PlayScreen::handleMouseButtonDown(const SDL_Event& sdle, Logic &logic)
 		xViewOld = sdle.button.x;
 		break;
 
+	case SDL_BUTTON_RIGHT:	// Rotate around x using right mouse button.
+		yViewOld = sdle.button.y;
+		break;
+
 	case SDL_BUTTON_WHEELUP:
 		angleViewZ -= flDeltaAngleViewZ;			// Rotate around the horizontal axis.
 		break;
@@ -1110,8 +1116,8 @@ void PlayScreen::handleMouseMotion(const SDL_Event& sdle, Logic &logic)
 	{
 	case SDL_BUTTON_LEFT:
 		//if(!bPaddlePicked){
-			angleViewY += sdle.motion.x - xViewOld;	// If paddle is not chosen, rotate view.
-			xViewOld = sdle.motion.x;
+			angleViewY += sdle.motion.x - xViewOld;	// If paddle is not chosen, rotate view.			
+			xViewOld = sdle.motion.x;			
 		//}
 		//else{
 		//	// 'magic numbers'.
@@ -1123,6 +1129,11 @@ void PlayScreen::handleMouseMotion(const SDL_Event& sdle, Logic &logic)
 		//	xPaddleOld = sdle.motion.x;
 		//	yPaddleOld = sdle.motion.y;
 		//}
+		break;
+
+	case SDL_BUTTON_RIGHT:
+		angleViewX += sdle.motion.y - yViewOld;
+		yViewOld = sdle.motion.y;
 		break;
 	}
 }
@@ -1294,6 +1305,7 @@ void PlayScreen::initView()
 	// Move camera to the point (0,0,zdistance) in eye coords, look at point (0,0,0), 
 	// camera orientation - the normal is along (0,1,0)
 	gluLookAt (0.0, 0.0, flZaxisDistance, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+	glRotatef(angleViewX, 1.0f, 0.0f, 0.0f);
 	glRotatef(angleViewY, 0.0f, 1.0f, 0.0f);
 	glRotatef(angleViewZ, 0.0f, 0.0f, 1.0f);
 	glScalef(flScaleAll, flScaleAll,flScaleAll);
@@ -1396,9 +1408,9 @@ void PlayScreen::play(Logic &logic, SDL_Event sdlEvent)
 		std::size_t idFig = 0;
 		int size =1;
 		currentFigure = 
-			//std::tr1::shared_ptr<Figure>( new Lfigure(nOfCubes, origin, idFig, size, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+			std::tr1::shared_ptr<Figure>( new Lfigure(nOfCubes, origin, idFig, size, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
 			//std::tr1::shared_ptr<Figure>( new Ofigure(nOfCubes, origin, idFig, size, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
-			std::tr1::shared_ptr<Figure>( new Sfigure(nOfCubes, origin, idFig, size, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+			//std::tr1::shared_ptr<Figure>( new Sfigure(nOfCubes, origin, idFig, size, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
 			//std::tr1::shared_ptr<Figure>( new Ifigure(nOfCubes, origin, idFig, size, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
 			//std::tr1::shared_ptr<Figure>( new Tfigure(nOfCubes, origin, idFig, size, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
 	}
