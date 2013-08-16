@@ -198,7 +198,9 @@ private:
 		float angley);
 	void drawScoreAndRoundOptimized(Logic &logic);
 
-	void manageCellsFilling();// Specify which cells should be drawn as filled.
+	void manageCellsFilling();	// Specify which cells should be drawn as filled.
+	void checkCollision(Logic &logic);		// Figure collision with the fixed cubes.
+	void annihilateLayers();	// Remove completely filled planes of cubes.
 
 	// Private members.
 private:
@@ -209,11 +211,14 @@ private:
 	int iNumOfPlanes;
 	int iNumOfCellsX;
 	int iNumOfCellsZ;
-	float cubeSize;
 	std::tr1::shared_ptr<FixedCubes> fixedCubes;
-	std::vector<std::tr1::shared_ptr<Cube> > cubes;
+	//std::vector<std::tr1::shared_ptr<Cube> > cubes;
+	//std::map<std::size_t, std::tr1::shared_ptr<Cube> > cubes;
 
+	int iCurrentFigureId;
+	vector_3d vFigureOrigin;
 	int cubesPerFigure;
+	float cubeSize;
 	std::vector<CellIndeces> currentCells;	// Indeces of cells that are occupied by the figure.
 	std::vector<CellIndeces> previousCells;// Cells that were occupied on the previous step.
 	//enum {BALL, WALL, LEFT_PADDLE, RIGHT_PADDLE};	// Enum hack for shape types.

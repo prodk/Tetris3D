@@ -3,6 +3,9 @@
 #ifndef FIGURE_H
 #define FIGURE_H
 #include "Cube.h"
+//#include "FixedCubes.h"
+
+class FixedCubes;
 
 class Figure
 {
@@ -12,24 +15,25 @@ public:
 
 	// Functions to override.
 	virtual void draw();
-	virtual void rotateX();
-	virtual void rotateY();
-	virtual void rotateZ();
+	virtual void rotateX(FixedCubes& fc);
+	virtual void rotateY(FixedCubes& fc);
+	virtual void rotateZ(FixedCubes& fc);
 
 	// Functions with the fixed implementation.
-	void moveX(int factor);
+	void moveX(int factor, FixedCubes& fc);
 	void moveY();
-	void moveZ(int factor);
+	void moveZ(int factor, FixedCubes& fc);
 
 	// Prevent from movement/rotation that results in a cube outside the scene.
-	bool testMoveX(int factor);	// Returns true if the figure doesn't move outside the scene.
-	bool testMoveZ(int factor); // Returns true if the figure doesn't move outside the scene.
+	bool testMoveX(int factor, FixedCubes& fc);	// Returns true if the figure doesn't move outside the scene.
+	bool testMoveZ(int factor, FixedCubes& fc); // Returns true if the figure doesn't move outside the scene.
 
-	bool testRotateX();
-	bool testRotateY();
-	bool testRotateZ();
+	bool testRotateX(FixedCubes& fc);
+	bool testRotateY(FixedCubes& fc);
+	bool testRotateZ(FixedCubes& fc);
 
 	void getCubeIndeces(std::vector<CellIndeces> &id);
+	const std::vector<std::tr1::shared_ptr<Cube> > & getCubes();
 
 protected:
 	virtual void createCubes() = 0;
@@ -38,7 +42,7 @@ protected:
 	// External input.
 	vector_3d vOrigin;	// The origin of the figure, typically the center of the cube #0.
 	std::size_t iNumOfCubes;
-	std::size_t id;
+	std::size_t figureId;
 	float cubeSize;
 	int iNumOfCellsX;
 	int iNumOfPlanes;

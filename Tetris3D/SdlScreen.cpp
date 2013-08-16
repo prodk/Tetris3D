@@ -783,11 +783,6 @@ PlayScreen::PlayScreen(int idExt, float w, float h, SDL_Surface* s, TEXTURE_PTR_
 	flDeltaPaddle = 0.01;
 
 	bKeyDown = false;
-	iFrameDelayMove = 200;
-
-	cubesPerFigure = 4;
-	currentCells.resize(cubesPerFigure);
-	previousCells.resize(cubesPerFigure);
 
 	// Optimize the string output - load string textures only once and then reuse them.
 	loadStringTextures();
@@ -804,12 +799,18 @@ PlayScreen::~PlayScreen()
 void PlayScreen::initMembers(const Logic &logic)
 {
 	iNumOfPlanes = 10;
-	iNumOfCellsX = 10;
-	iNumOfCellsZ = 10;
+	iNumOfCellsX = 4;
+	iNumOfCellsZ = 4;
 	cubeSize = 1.;
 	// Get a fresh set of cells that track fixed cubes.
 	fixedCubes = 
 		std::tr1::shared_ptr<FixedCubes>( new FixedCubes(iNumOfPlanes, iNumOfCellsX, iNumOfCellsZ, cubeSize) );
+
+	cubesPerFigure = 4;
+	currentCells.resize(cubesPerFigure);
+	previousCells.resize(cubesPerFigure);
+	iCurrentFigureId = -cubesPerFigure;		// Start from the negative to get 0 at the start.
+	iFrameDelayMove = 200;
 
 	iCurRound = logic.iRound - 1;
 	flBoxWidth = roundParams[iCurRound]->flBoxWidth;
@@ -819,6 +820,8 @@ void PlayScreen::initMembers(const Logic &logic)
 	//flBallVel = roundParams[iCurRound]->flBallVelocity;
 	//flBallDeltaVel = roundParams[iCurRound]->flBallDeltaVel;
 	//flCompPaddleVel = roundParams[iCurRound]->flComputerPaddleVel;
+
+	
 
 	// 'magic numbers'.
 	xViewOld = 0.;
@@ -1187,28 +1190,29 @@ void PlayScreen::handleKeyDown(const SDL_Event& sdle, Logic &logic)
 		// xy-plane, z-axis.
 	case SDLK_a:
 		if(bKeyDown)
-			currentFigure->rotateZ();
+			currentFigure->rotateZ( (*fixedCubes) );
 		break;
 
 		// xz-plane, y-axis.
 	case SDLK_s:
 		if(bKeyDown)
-			currentFigure->rotateY();
+			currentFigure->rotateY( (*fixedCubes) );
 		break;
 
 	case SDLK_d:
 		if(bKeyDown)
-			currentFigure->rotateX();
+			currentFigure->rotateX( (*fixedCubes) );
 		break;
 
-	case SDLK_n:
+	case SDLK_RSHIFT:
+	case SDLK_LSHIFT:			// Fall through.
 		currentFigure->moveY();
 		break;
 
 	case SDLK_LEFT:
 		{
 			int factor = -1;
-			currentFigure->moveX(factor);
+			currentFigure->moveX(factor, (*fixedCubes));
 		}
 		//dr = vector_3d(0., 0.0, -flDeltaPaddle);
 		//shapes[leftPaddleIdx]->move(dr, false);
@@ -1217,7 +1221,7 @@ void PlayScreen::handleKeyDown(const SDL_Event& sdle, Logic &logic)
 	case SDLK_RIGHT:
 		{
 			int factor = 1;
-			currentFigure->moveX(factor);
+			currentFigure->moveX(factor, (*fixedCubes));
 		}
 		//dr = vector_3d(0., 0.0, flDeltaPaddle);
 		//shapes[leftPaddleIdx]->move(dr, false);
@@ -1226,7 +1230,7 @@ void PlayScreen::handleKeyDown(const SDL_Event& sdle, Logic &logic)
 	case SDLK_UP:
 		{
 			int factor = -1;
-			currentFigure->moveZ(factor);
+			currentFigure->moveZ(factor, (*fixedCubes));
 		}
 		//dr = vector_3d(0., flDeltaPaddle, 0.);
 		//shapes[leftPaddleIdx]->move(dr, false);
@@ -1235,7 +1239,7 @@ void PlayScreen::handleKeyDown(const SDL_Event& sdle, Logic &logic)
 	case SDLK_DOWN:
 		{
 			int factor = 1;
-			currentFigure->moveZ(factor);
+			currentFigure->moveZ(factor, (*fixedCubes));
 		}
 		//dr = vector_3d(0., -flDeltaPaddle, 0.);
 		//shapes[leftPaddleIdx]->move(dr, false);
@@ -1345,11 +1349,15 @@ void PlayScreen::doLogic(Logic &logic)
 	// Save current filled cells to the previous cells.
 	previousCells = currentCells;
 
-	// Get new filled cells.
+	// Get new filled cells for drawing filled cells.
+	// Define in what cells the cubes of the figure are currently located.
 	currentFigure->getCubeIndeces(currentCells);
 
 	// Specify what cells should be filled/unfilled.
 	manageCellsFilling();
+
+	checkCollision(logic);		// Figure collision with the fixed cubes.
+	annihilateLayers();	// Remove completely filled planes of cubes.
 
 	// Move the shapes.
 	//bool bReset = false;	// Whether to move the ball to the origin.
@@ -1401,19 +1409,30 @@ void PlayScreen::play(Logic &logic, SDL_Event sdlEvent)
 	//initResize();
 	if(logic.bNewRound){
 		logic.bNewRound = false;
+		logic.bNewFigure = true;
 		setupNewRound(logic);
+	}
 
-		std::size_t nOfCubes = 4;
-		vector_3d origin(0., 0., 0.);	// Must be multiple of the cube size.
-		std::size_t idFig = 0;
-		int size =1;
+	if( logic.bNewFigure ){
+		logic.bNewFigure = false;
+		// Put the code below in a function: createNewFigure() or createFigure().
+		iCurrentFigureId += cubesPerFigure;
+		//std::size_t nOfCubes = 4;
+		// Put this probably in a separate function, maybe to the setupRound.
+		// Replace the magic number by a member variable.
+		vFigureOrigin = vector_3d(0., 3., 0.);	// Must be multiple of the cube size.
+		//std::size_t idFig = 0;
+		//int size =1;
 		currentFigure = 
-			std::tr1::shared_ptr<Figure>( new Lfigure(nOfCubes, origin, idFig, size, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
-			//std::tr1::shared_ptr<Figure>( new Ofigure(nOfCubes, origin, idFig, size, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+			//std::tr1::shared_ptr<Figure>( new Lfigure(nOfCubes, origin, idFig, size, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+			std::tr1::shared_ptr<Figure>( new Ofigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
 			//std::tr1::shared_ptr<Figure>( new Sfigure(nOfCubes, origin, idFig, size, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
 			//std::tr1::shared_ptr<Figure>( new Ifigure(nOfCubes, origin, idFig, size, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
 			//std::tr1::shared_ptr<Figure>( new Tfigure(nOfCubes, origin, idFig, size, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
 	}
+
+	// Draw the scene.
+	doDrawing(logic);	// Drawing is before input/logic to ensure that figure is always present.
 
 	// Rotate the view at the beginning of a new round.
 	/*if( (angleViewY < angleViewYMax) && (!logic.bRotated ) )
@@ -1440,7 +1459,8 @@ void PlayScreen::play(Logic &logic, SDL_Event sdlEvent)
 	//}
 	
 	// Draw the scene.
-	doDrawing(logic);	
+	//if(!logic.bNewFigure)
+		//doDrawing(logic);	
 }
 
 void PlayScreen::setupNewRound(Logic &logic)
@@ -1632,4 +1652,39 @@ void PlayScreen::manageCellsFilling()
 			ci.z = currentCells[i].z;
 			fixedCubes->setBottomCellToDraw(ci);
 		}
+}
+
+void PlayScreen::checkCollision(Logic &logic)
+{
+	// Look at the planes which lie below the currently filled cells.
+	// If there is at least one filled cell, then collision occurred.
+	std::size_t i;
+	int iPlaneBelow;
+
+	// Loop over the planes that are below the currently filled cells.
+	for(i = 0; i < currentCells.size(); ++i){
+		iPlaneBelow = currentCells[i].plane - 1;
+		// If collision occurred.
+		if( (iPlaneBelow < 0) || 
+			( fixedCubes->isCellFilled(currentCells[i].x, iPlaneBelow, currentCells[i].z) ) )
+		{
+			// !Add later: make collision sound.
+
+			// Add cubes from the figure to the fixed cubes, change their color.
+			fixedCubes->addCubes( (*currentFigure) );
+			// Delete the figure.
+			currentFigure.reset();
+
+			// Set the flag that says that there is a need for the new figure. 
+			// Use bNewRound for the moment, change it later.
+			logic.bNewFigure = true;
+
+			break;
+		}
+	}
+}
+
+void PlayScreen::annihilateLayers()
+{
+	fixedCubes->annihilateLayer();
 }

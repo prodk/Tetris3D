@@ -1,10 +1,11 @@
 // Figure.cpp - implementation of Figure abstract class and its children.
 // (c) Nikolay Prodanov, summer 2013, Juelich, Germany.
 #include "Figure.h"
+#include "FixedCubes.h"
 
 Figure::Figure(std::size_t nCubes, vector_3d vO, std::size_t idExt, 
 	float size, int x, int p, int z) :
-	iNumOfCubes(nCubes), vOrigin(vO), id(idExt), cubeSize(size),
+	iNumOfCubes(nCubes), vOrigin(vO), figureId(idExt), cubeSize(size),
 		iNumOfCellsX(x), iNumOfPlanes(p), iNumOfCellsZ(z)
 {
 	pi = 4*std::atan(1.);
@@ -21,10 +22,10 @@ void Figure::draw()
 		cubes[i]->draw();
 }
 
-void Figure::moveX(int factor)
+void Figure::moveX(int factor, FixedCubes& fc)
 {
 	// Move only if the figure doesn't go beyond the borders of the scene.
-	if( testMoveX(factor) ){
+	if( testMoveX(factor, fc) ){
 		for(std::size_t i = 0; i < cubes.size(); ++i)
 			cubes[i]->moveX(factor);
 	}
@@ -36,81 +37,109 @@ void Figure::moveY()
 		cubes[i]->moveY();
 }
 
-void Figure::moveZ(int factor)
+void Figure::moveZ(int factor, FixedCubes& fc)
 {
 	// Move only inside the scene.
-	if( testMoveZ(factor) ){
+	if( testMoveZ(factor, fc) ){
 		for(std::size_t i = 0; i < cubes.size(); ++i)
 			cubes[i]->moveZ(factor);
 	}
 }
 
-bool Figure::testMoveX(int factor)
+bool Figure::testMoveX(int factor, FixedCubes& fc)
 {
 	float n;
 	vector_3d testCenter;
+	int iCellX, iPlane, iCellZ;
 	float shiftX = 0.5*cubeSize*iNumOfCellsX;
+	float shiftY = 0.5*cubeSize*iNumOfPlanes;
+	float shiftZ = 0.5*cubeSize*iNumOfCellsZ;
+
+	//float shiftX = 0.5*cubeSize*iNumOfCellsX;
 
 	for(std::size_t i = 0; i < cubes.size(); ++i){
 		testCenter = cubes[i]->testMoveX(factor);
 		n = (testCenter[0] + shiftX)/cubeSize;
 		if( (n < 0) || (n >= iNumOfCellsX) )
 			return false;
-	}
 
-	return true;
-}
-
-bool Figure::testMoveZ(int factor)
-{
-	float n;
-	vector_3d testCenter;
-	float shiftZ = 0.5*cubeSize*iNumOfCellsZ;
-
-	for(std::size_t i = 0; i < cubes.size(); ++i){
-		testCenter = cubes[i]->testMoveZ(factor);
-		n = (testCenter[2] + shiftZ)/cubeSize;
-		if( (n < 0) || (n >= iNumOfCellsZ) )
+		// Define cell indeces.
+		iCellX = (testCenter[0] + shiftX)/cubeSize;
+		iPlane = (testCenter[1] + shiftY)/cubeSize;
+		iCellZ = (testCenter[2] + shiftZ)/cubeSize;
+		if( fc.isCellFilled(iCellX, iPlane, iCellZ) )
 			return false;
 	}
 
 	return true;
 }
 
-void Figure::rotateX()
+bool Figure::testMoveZ(int factor, FixedCubes& fc)
+{
+	float n;
+	vector_3d testCenter;
+	int iCellX, iPlane, iCellZ;
+	float shiftX = 0.5*cubeSize*iNumOfCellsX;
+	float shiftY = 0.5*cubeSize*iNumOfPlanes;
+	float shiftZ = 0.5*cubeSize*iNumOfCellsZ;
+	//float shiftZ = 0.5*cubeSize*iNumOfCellsZ;
+
+	for(std::size_t i = 0; i < cubes.size(); ++i){
+		testCenter = cubes[i]->testMoveZ(factor);
+		n = (testCenter[2] + shiftZ)/cubeSize;
+		if( (n < 0) || (n >= iNumOfCellsZ) )
+			return false;
+
+		// Define cell indeces.
+		iCellX = (testCenter[0] + shiftX)/cubeSize;
+		iPlane = (testCenter[1] + shiftY)/cubeSize;
+		iCellZ = (testCenter[2] + shiftZ)/cubeSize;
+		if( fc.isCellFilled(iCellX, iPlane, iCellZ) )
+			return false;
+	}
+
+	return true;
+}
+
+void Figure::rotateX(FixedCubes& fc)
 {
 	// Rotate only after ensuring that the figure will not leave the borders of the scene.
-	if( testRotateX() ){
+	if( testRotateX(fc) ){
 		for(std::size_t i = 0; i < cubes.size(); ++i)
 			cubes[i]->rotateX(deltaAngleRad);
 	}
 }
 
-void Figure::rotateY()
+void Figure::rotateY(FixedCubes& fc)
 {
 	// Rotate only after ensuring that the figure will not leave the borders of the scene.
-	if( testRotateY() ){
+	if( testRotateY(fc) ){
 		for(std::size_t i = 0; i < cubes.size(); ++i)
 			cubes[i]->rotateY(deltaAngleRad);
 	}
 }
 
-void Figure::rotateZ()
+void Figure::rotateZ(FixedCubes& fc)
 {
 	// Rotate only after ensuring that the figure will not leave the borders of the scene.
-	if( testRotateZ() ){
+	if( testRotateZ(fc) ){
 		for(std::size_t i = 0; i < cubes.size(); ++i)
 			cubes[i]->rotateZ(deltaAngleRad);
 	}
 }
 
-bool Figure::testRotateX()
+bool Figure::testRotateX(FixedCubes& fc)
 {
 	// For rotation around x-axis look at the z and y directions.
 	float n;
 	vector_3d testCenter;
+	int iCellX, iPlane, iCellZ;
+	float shiftX = 0.5*cubeSize*iNumOfCellsX;
 	float shiftY = 0.5*cubeSize*iNumOfPlanes;
 	float shiftZ = 0.5*cubeSize*iNumOfCellsZ;
+
+	//float shiftY = 0.5*cubeSize*iNumOfPlanes;
+	//float shiftZ = 0.5*cubeSize*iNumOfCellsZ;
 
 	for(std::size_t i = 0; i < cubes.size(); ++i){
 		testCenter = cubes[i]->testRotateX(deltaAngleRad);
@@ -122,18 +151,30 @@ bool Figure::testRotateX()
 		n = (testCenter[2] + shiftZ)/cubeSize;
 		if( (n < 0) || (n >= iNumOfCellsZ) )
 			return false;
+
+		// Define cell indeces.
+		iCellX = (testCenter[0] + shiftX)/cubeSize;
+		iPlane = (testCenter[1] + shiftY)/cubeSize;
+		iCellZ = (testCenter[2] + shiftZ)/cubeSize;
+		if( fc.isCellFilled(iCellX, iPlane, iCellZ) )
+			return false;
 	}
 
 	return true;
 }
 
-bool Figure::testRotateY()
+bool Figure::testRotateY(FixedCubes& fc)
 {
 	// For rotation around y-axis look at the x- and z-directions;
 	float n;
 	vector_3d testCenter;
+	int iCellX, iPlane, iCellZ;
 	float shiftX = 0.5*cubeSize*iNumOfCellsX;
+	float shiftY = 0.5*cubeSize*iNumOfPlanes;
 	float shiftZ = 0.5*cubeSize*iNumOfCellsZ;
+
+	//float shiftX = 0.5*cubeSize*iNumOfCellsX;
+	//float shiftZ = 0.5*cubeSize*iNumOfCellsZ;
 
 	for(std::size_t i = 0; i < cubes.size(); ++i){
 		testCenter = cubes[i]->testRotateY(deltaAngleRad);
@@ -145,18 +186,30 @@ bool Figure::testRotateY()
 		n = (testCenter[2] + shiftZ)/cubeSize;
 		if( (n < 0) || (n >= iNumOfCellsZ) )
 			return false;
+
+		// Define cell indeces.
+		iCellX = (testCenter[0] + shiftX)/cubeSize;
+		iPlane = (testCenter[1] + shiftY)/cubeSize;
+		iCellZ = (testCenter[2] + shiftZ)/cubeSize;
+		if( fc.isCellFilled(iCellX, iPlane, iCellZ) )
+			return false;
 	}
 
 	return true;
 }
 
-bool Figure::testRotateZ()
+bool Figure::testRotateZ(FixedCubes& fc)
 {
 	// For rotation around z-axis look at the x- and y-directions;
 	float n;
 	vector_3d testCenter;
+	int iCellX, iPlane, iCellZ;
 	float shiftX = 0.5*cubeSize*iNumOfCellsX;
 	float shiftY = 0.5*cubeSize*iNumOfPlanes;
+	float shiftZ = 0.5*cubeSize*iNumOfCellsZ;
+
+	//float shiftX = 0.5*cubeSize*iNumOfCellsX;
+	//float shiftY = 0.5*cubeSize*iNumOfPlanes;
 
 	for(std::size_t i = 0; i < cubes.size(); ++i){
 		testCenter = cubes[i]->testRotateZ(deltaAngleRad);
@@ -168,14 +221,21 @@ bool Figure::testRotateZ()
 		n = (testCenter[1] + shiftY)/cubeSize;
 		if( (n < 0) || (n >= iNumOfPlanes) )
 			return false;
+
+		// Define cell indeces.
+		iCellX = (testCenter[0] + shiftX)/cubeSize;
+		iPlane = (testCenter[1] + shiftY)/cubeSize;
+		iCellZ = (testCenter[2] + shiftZ)/cubeSize;
+		if( fc.isCellFilled(iCellX, iPlane, iCellZ) )
+			return false;
 	}
 
 	return true;
 }
 
-void Figure::getCubeIndeces(std::vector<CellIndeces> &id)
+void Figure::getCubeIndeces(std::vector<CellIndeces> &indeces)
 {
-	std::size_t iIdSize = id.size();
+	std::size_t iIdSize = indeces.size();
 	float shiftX = 0.5*cubeSize*iNumOfCellsX;
 	float shiftY = 0.5*cubeSize*iNumOfPlanes;
 	float shiftZ = 0.5*cubeSize*iNumOfCellsZ;
@@ -188,13 +248,18 @@ void Figure::getCubeIndeces(std::vector<CellIndeces> &id)
 		if(i < iIdSize )			// Treat only those cubes that fit the id array.
 		{
 			center = cubes[i]->getCenter();
-			id[i].x = (center[0] + shiftX)/cubeSize;
-			id[i].plane = (center[1] + shiftY)/cubeSize;
-			id[i].z = (center[2] + shiftZ)/cubeSize;
+			indeces[i].x = (center[0] + shiftX)/cubeSize;
+			indeces[i].plane = (center[1] + shiftY)/cubeSize;
+			indeces[i].z = (center[2] + shiftZ)/cubeSize;
 //#ifdef _DEBUG			
 //			std::cerr << i << " x = " << id[i].x << " y = " << id[i].plane << " z = " << id[i].z << std::endl;
 //#endif
 		}
+}
+
+const std::vector<std::tr1::shared_ptr<Cube> > & Figure::getCubes()
+{
+	return cubes;
 }
 
 //_____________________//
@@ -210,10 +275,12 @@ Lfigure::~Lfigure(void)
 {
 }
 
+//!Put the duplicated code for cubes creation in a separate method!
 void Lfigure::createCubes()
 {
 	cubes.resize(iNumOfCubes);
 
+	std::size_t cubeIndex = figureId;
 	// Head cube.
 	std::size_t id = 0;
 	vector_3d center = vOrigin;
@@ -223,24 +290,27 @@ void Lfigure::createCubes()
 	center[1] -= 1.5*cubeSize;
 	center[2] += 0.5*cubeSize;
 
-	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(id, center, cubeSize) );
+	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(cubeIndex, center, cubeSize) );
 	cubes[id]->setOrigin(vOrigin);
 
 	// Two cubes below.
 	++id;
+	++cubeIndex;
 	center[1] += cubeSize;
-	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(id, center, cubeSize) );
+	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(cubeIndex, center, cubeSize) );
 	cubes[id]->setOrigin(vOrigin);
 
 	++id;
+	++cubeIndex;
 	center[1] += cubeSize;
-	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(id, center, cubeSize) );
+	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(cubeIndex, center, cubeSize) );
 	cubes[id]->setOrigin(vOrigin);
 
 	// The cube to the right.
 	++id;
+	++cubeIndex;
 	center[0] += cubeSize;
-	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(id, center, cubeSize) );
+	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(cubeIndex, center, cubeSize) );
 	cubes[id]->setOrigin(vOrigin);
 }
 
@@ -261,31 +331,35 @@ void Ofigure::createCubes()
 {
 	cubes.resize(iNumOfCubes);
 
+	std::size_t cubeIndex = figureId;
 	// Left top cube.
 	std::size_t id = 0;
 	vector_3d center = vOrigin;
-	center[0] += 0.5*cubeSize;	// Put the origin in the middle of the figure.
+	center[0] -= 0.5*cubeSize;	// Put the origin in the middle of the figure.
 	center[1] += 0.5*cubeSize;	// Put the origin in the middle of the figure.
 	center[2] += 0.5*cubeSize;	// Put the origin in the middle of the figure.
-	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(id, center, cubeSize) );
+	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(cubeIndex, center, cubeSize) );
 	cubes[id]->setOrigin(vOrigin);
 
 	// Left bottom.
 	++id;
+	++cubeIndex;
 	center[1] -= cubeSize;
-	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(id, center, cubeSize) );
+	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(cubeIndex, center, cubeSize) );
 	cubes[id]->setOrigin(vOrigin);
 
 	// Right bottom.
 	++id;
+	++cubeIndex;
 	center[0] += cubeSize;
-	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(id, center, cubeSize) );
+	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(cubeIndex, center, cubeSize) );
 	cubes[id]->setOrigin(vOrigin);
 
 	// Right top.
 	++id;
+	++cubeIndex;
 	center[1] += cubeSize;
-	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(id, center, cubeSize) );
+	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(cubeIndex, center, cubeSize) );
 	cubes[id]->setOrigin(vOrigin);
 }
 
@@ -306,6 +380,7 @@ void Sfigure::createCubes()
 {
 	cubes.resize(iNumOfCubes);
 
+	std::size_t cubeIndex = figureId;
 	// Left top cube.
 	std::size_t id = 0;
 	vector_3d center = vOrigin;
@@ -315,25 +390,28 @@ void Sfigure::createCubes()
 	center[1] += 0.5*cubeSize;
 	center[2] += 0.5*cubeSize;
 
-	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(id, center, cubeSize) );
+	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(cubeIndex, center, cubeSize) );
 	cubes[id]->setOrigin(vOrigin);
 
 	// Left middle.
 	++id;
+	++cubeIndex;
 	center[1] -= cubeSize;
-	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(id, center, cubeSize) );
+	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(cubeIndex, center, cubeSize) );
 	cubes[id]->setOrigin(vOrigin);
 
 	// Right middle.
 	++id;
+	++cubeIndex;
 	center[0] += cubeSize;
-	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(id, center, cubeSize) );
+	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(cubeIndex, center, cubeSize) );
 	cubes[id]->setOrigin(vOrigin);
 
 	// Right bottom.
 	++id;
+	++cubeIndex;
 	center[1] -= cubeSize;
-	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(id, center, cubeSize) );
+	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(cubeIndex, center, cubeSize) );
 	cubes[id]->setOrigin(vOrigin);
 }
 
@@ -354,6 +432,7 @@ void Ifigure::createCubes()
 {
 	cubes.resize(iNumOfCubes);
 
+	std::size_t cubeIndex = figureId;
 	// Left top cube.
 	std::size_t id = 0;
 	vector_3d center = vOrigin;
@@ -364,25 +443,28 @@ void Ifigure::createCubes()
 	center[1] += 1.5*cubeSize;
 	center[2] += 0.5*cubeSize;
 
-	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(id, center, cubeSize) );
+	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(cubeIndex, center, cubeSize) );
 	cubes[id]->setOrigin(vOrigin);
 
 	// Middle.
 	++id;
+	++cubeIndex;
 	center[1] -= cubeSize;
-	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(id, center, cubeSize) );
+	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(cubeIndex, center, cubeSize) );
 	cubes[id]->setOrigin(vOrigin);
 
 	// Middle.
 	++id;
+	++cubeIndex;
 	center[1] -= cubeSize;
-	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(id, center, cubeSize) );
+	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(cubeIndex, center, cubeSize) );
 	cubes[id]->setOrigin(vOrigin);
 
 	// Bottom.
 	++id;
+	++cubeIndex;
 	center[1] -= cubeSize;
-	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(id, center, cubeSize) );
+	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(cubeIndex, center, cubeSize) );
 	cubes[id]->setOrigin(vOrigin);
 }
 
@@ -403,6 +485,7 @@ void Tfigure::createCubes()
 {
 	cubes.resize(iNumOfCubes);
 
+	std::size_t cubeIndex = figureId;
 	// Top cube.
 	std::size_t id = 0;
 	vector_3d center = vOrigin;
@@ -411,24 +494,27 @@ void Tfigure::createCubes()
 	center[1] += 0.5*cubeSize;	// Put the origin to a vertex.
 	center[2] += 0.5*cubeSize;	// Put the origin to a vertex.
 
-	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(id, center, cubeSize) );
+	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(cubeIndex, center, cubeSize) );
 	cubes[id]->setOrigin(vOrigin);
 
 	// Middle.
 	++id;
+	++cubeIndex;
 	center[1] -= cubeSize;
-	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(id, center, cubeSize) );
+	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(cubeIndex, center, cubeSize) );
 	cubes[id]->setOrigin(vOrigin);
 
 	// Left.
 	++id;
+	++cubeIndex;
 	center[0] -= cubeSize;
-	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(id, center, cubeSize) );
+	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(cubeIndex, center, cubeSize) );
 	cubes[id]->setOrigin(vOrigin);
 
 	// Right.
 	++id;
+	++cubeIndex;
 	center[0] += 2.*cubeSize;
-	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(id, center, cubeSize) );
+	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(cubeIndex, center, cubeSize) );
 	cubes[id]->setOrigin(vOrigin);
 }

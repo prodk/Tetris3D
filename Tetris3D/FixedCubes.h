@@ -4,6 +4,8 @@
 #define FIXED_CUBES_H
 
 #include "Cube.h"
+#include "Figure.h"
+#include <map>
 
 //--------------------------------
 // Cell.
@@ -29,9 +31,6 @@ public:
 	void setPolygonMode(int mode);
 
 private:
-	//int x;					// Lateral index.
-	//int z;					// Lateral index.
-	//int planeId;			// In what plane the cell is located.
 	int cubeId;				// An id of the fixed cube, -1 otherwise.
 	int polygonMode;
 
@@ -47,9 +46,10 @@ public:
 	PlaneOfCells(int id, int x, int z, float size);
 	~PlaneOfCells();
 
-	bool isFilled();		// True if all the cells in the plane contain a fixed cube.
+	bool isPlaneFilled();		// True if all the cells in the plane contain a fixed cube.
+	bool isPlaneEmpty();
+	bool isCellFilled(int x, int z);// True if the cell[x*Nx + z] is filled.
 	void fillCell(int x, int z, int cubeId);// Mark the cell as containing a fixed cube.
-	//void draw();
 	void drawLeftPlane();
 	void drawBottomPlane();
 	void drawRightPlane();
@@ -58,6 +58,11 @@ public:
 	void resetFilledCellToDraw(int x, int z);
 	void setBottomCellToDraw(int x, int z);
 	void resetBottomCellToDraw(int x, int z);
+
+	//void clear();	// Delete cubes and empty the corresponding cells.
+	int getCubeIndex(int x, int z);
+	const std::vector<Cell>& getCells();
+	void copyCells(const std::vector<Cell>& c);
 
 private:
 	void initCells();		// Set cube index in all the cells to -1.
@@ -88,9 +93,15 @@ public:
 	void setBottomCellToDraw(CellIndeces &id);
 	void resetBottomCellToDraw(CellIndeces &id);
 
+	bool isCellFilled(int x, int planeId, int z);
+
+	void addCubes(Figure &f);
+	void fillCell(const CellIndeces &cellId, int cubeId);
+	void annihilateLayer();
+
 private:
 	void createPlanes();
-	void annihilateLayer();
+	//void annihilateLayer();
 
 private:
 	int iNumOfCubes;				// Current number of cubes.
@@ -98,12 +109,16 @@ private:
 	int iNumOfCellsX;
 	int iNumOfCellsZ;
 
+	//int iFiguresPerCube;	// Add this to the constructor.
+
 	float cubeSize;
 	int bottomPlane;
 
 	std::vector<std::tr1::shared_ptr<PlaneOfCells> > plane;	// Vector of planes containing cells.
 
-	std::vector<std::tr1::shared_ptr<Cube> > cubes;	// Pointers to the fixed cubes.
+	//std::vector<std::tr1::shared_ptr<Cube> > cubes;	// Pointers to the fixed cubes.
+	std::map<std::size_t, std::tr1::shared_ptr<Cube> > cubes;
+	typedef std::map<std::size_t, std::tr1::shared_ptr<Cube>  >::iterator map_iter;
 };
 
 #endif	// end FIXED_CUBES_H

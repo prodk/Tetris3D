@@ -162,7 +162,7 @@ void PlaneOfCells::initCells()
 		}
 }
 
-bool PlaneOfCells::isFilled()			// True if all the cells in the plane contain a fixed cube.
+bool PlaneOfCells::isPlaneFilled()			// True if all the cells in the plane contain a fixed cube.
 {
 	// The plane is filled when there're no indexes which are == -1.
 	for(int ix = 0; ix < iNumOfCellsX; ix++)
@@ -170,6 +170,26 @@ bool PlaneOfCells::isFilled()			// True if all the cells in the plane contain a 
 			if( cell[ix*iNumOfCellsX + iz].getCubeIdx() < 0 )
 				return false;
 		}
+
+	return true;
+}
+
+bool PlaneOfCells::isPlaneEmpty()			// True if all the cells in the plane contain -1.
+{
+	// The plane is filled when there're no indexes which are == -1.
+	for(int ix = 0; ix < iNumOfCellsX; ix++)
+		for(int iz = 0; iz < iNumOfCellsZ; iz++){			
+			if( cell[ix*iNumOfCellsX + iz].getCubeIdx() >= 0 )
+				return false;
+		}
+
+	return true;
+}
+
+bool PlaneOfCells::isCellFilled(int x, int z)
+{
+	if( cell[x*iNumOfCellsX + z].getCubeIdx() < 0 )
+		return false;
 
 	return true;
 }
@@ -234,6 +254,22 @@ void PlaneOfCells::resetBottomCellToDraw(int x, int z)
 	cell[x*iNumOfCellsX + z].setPolygonMode(GL_LINE);	
 }
 
+int PlaneOfCells::getCubeIndex(int x, int z)
+{
+	return cell[x*iNumOfCellsX + z].getCubeIdx();
+}
+
+const std::vector<Cell>& PlaneOfCells::getCells()
+{
+	return cell;
+}
+
+void PlaneOfCells::copyCells(const std::vector<Cell>& c)
+{
+	for(std::size_t i = 0; i < c.size(); ++i)
+		cell[i] = c[i];
+}
+
 //----------------------------
 // FixedCubes.
 FixedCubes::FixedCubes(int planes, int x, int z, float size)
@@ -243,6 +279,8 @@ FixedCubes::FixedCubes(int planes, int x, int z, float size)
 	iNumOfCellsX = x;
 	iNumOfCellsZ = z;
 	cubeSize = size;
+
+	//iFiguresPerCube = 4;
 
 	bottomPlane = 0;		// Plane on which we highlight cells.
 
@@ -272,7 +310,7 @@ void FixedCubes::draw()
 	// Translate the coordinates, such that the origin is at the center of the scene.
 	glTranslatef(-0.5*cubeSize*iNumOfCellsX, -0.5*cubeSize*iNumOfPlanes, -0.5*cubeSize*iNumOfCellsZ);
 
-	for(std::size_t i = 0; i < plane.size(); i++){
+	for(std::size_t i = 0; i < plane.size(); ++i){
 		plane[i]->drawLeftPlane();
 		plane[i]->drawRightPlane();
 	}
@@ -280,10 +318,75 @@ void FixedCubes::draw()
 	plane[0]->drawBottomPlane();
 
 	glPopMatrix();
+
+	// Draw fixed cubes.
+	//for(std::size_t i = 0; i < cubes.size(); ++i)
+		//cubes[i]->draw();
+	for(map_iter iterator = cubes.begin(); iterator != cubes.end(); iterator++)
+		iterator->second->draw();
 }
 
 void FixedCubes::annihilateLayer()
 {
+	int index;
+	int emptyValue = -1;
+	std::size_t i = 0;
+	while(i < plane.size()){
+		if( plane[i]->isPlaneFilled() ){
+			// Annihilate the plane.
+			// Get indeces of the cubes in this plane and delete these cubes.
+			for(int ix = 0; ix < iNumOfCellsX; ix++){
+				for(int iz = 0; iz < iNumOfCellsZ; iz++){
+					index = plane[i]->getCubeIndex(ix, iz);
+					// Remove the cube
+					cubes.erase(index);
+					// Say that the cell is empty.
+					plane[i]->fillCell(ix, iz, emptyValue);
+#ifdef _DEBUG
+					std::cerr << "Plane " << i << " has been annihilated." << std::endl;
+#endif
+				}
+			}// End annihilate the plane.	
+
+			// Find the first empty plane above the annihilated plane.
+			std::size_t emptyPlaneIndex = 0;
+			for(std::size_t j = i+1; j < plane.size(); ++j){
+				if( plane[j]->isPlaneEmpty() ){
+					emptyPlaneIndex = j;
+#ifdef _DEBUG
+					std::cerr << "Empty plane " << emptyPlaneIndex << std::endl;
+#endif
+					goto label;	// Use goto here. break can terminate the outer while loop too. We don't want this.
+				}
+			}
+label:
+
+			// Shift all the nonempty planes by one plane to the bottom.
+			// This involves 2 steps:
+			// 1) copy the content of the cells of the upper plane to the current one.
+			// 2) shift the corresponding cubes; 			
+			for(std::size_t j = i; j < emptyPlaneIndex; ++j){
+				plane[j]->copyCells( plane[j+1]->getCells() );// 1) copy cells of the upper plane to the current one.
+#ifdef _DEBUG
+				std::cerr << "plane " << j+1 << " moved to " << j << std::endl;
+#endif
+				// 2) shift the corresponding cubes.
+				for(int ix = 0; ix < iNumOfCellsX; ix++){
+					for(int iz = 0; iz < iNumOfCellsZ; iz++){
+						index = plane[j]->getCubeIndex(ix, iz);
+						// If the cell is not empty, move the cube by one cube size to the bottom.
+						if(index >= 0)
+							cubes[index]->moveY();						
+					}
+				}// End shift the cubes.	
+			}// End shift nonempty planes.
+
+			// Don't increase count i, start while loop again from the current plane i, 
+			// which has just been shifted.
+			
+		}// End if plane is filled.
+		++i;	// Go to the next upper plane if no annihilation.
+	}
 }
 
 void FixedCubes::setFilledCellToDraw(CellIndeces &id)
@@ -304,4 +407,37 @@ void FixedCubes::setBottomCellToDraw(CellIndeces &id)
 void FixedCubes::resetBottomCellToDraw(CellIndeces &id)
 {
 	plane[bottomPlane]->resetBottomCellToDraw(id.x, id.z);
+}
+
+bool FixedCubes::isCellFilled(int x, int planeId, int z)
+{
+	return plane[planeId]->isCellFilled(x, z);
+}
+
+void FixedCubes::addCubes(Figure &f)
+{
+	std::vector<CellIndeces> ci;
+	ci.resize(4);
+
+	std::vector<std::tr1::shared_ptr<Cube> > c;
+
+	f.getCubeIndeces(ci);
+	c = f.getCubes();
+	// Add new cubes to the cubes and mark cells that contain these cubes.
+	for(std::size_t i = 0; i < c.size(); i++){
+		// cubes.push_back(c[i]);
+		int cubeId = c[i]->getId();
+//#ifdef _DEBUG
+//		std::cerr << cubeId << std::endl;
+//#endif
+		cubes.insert(std::make_pair(cubeId, c[i]));	
+		// Notify the cell in the plane that the cell is filled with the fixed cube.
+		// Use cube id as an id in the function below.
+		fillCell(ci[i], cubeId );	// Reconsider the cube.size() as id when annihilation.
+	}
+}
+
+void FixedCubes::fillCell(const CellIndeces &cellId, int cubeId)
+{
+	plane[cellId.plane]->fillCell(cellId.x, cellId.z, cubeId);
 }

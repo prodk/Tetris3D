@@ -29,6 +29,7 @@ public:
 	bool bNewRound;				// True if a new round has to be started.
 	bool bNewOptionsScreen;		// When we switch to the options screen, create new buttons.
 	bool bRoundFinished;		// To show the message when someone looses.
+	bool bNewFigure;
 
 	std::size_t iRound;			// Current round.
 	int iUserScore;
