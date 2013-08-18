@@ -14,6 +14,10 @@ Cell::Cell()
 	cubeId = -1;
 	cubeSize = 1.;
 	polygonMode = GL_LINE;
+
+	// Default material.
+	pMaterialGrid = std::tr1::shared_ptr<Material>(new Material());
+	pMaterialFill = std::tr1::shared_ptr<Material>(new Material());
 }
 
 Cell::~Cell()
@@ -39,8 +43,12 @@ void Cell::drawLeftFace(int x, int planeId, int z)
 {
 	glPushMatrix();
 
-	glDisable(GL_LIGHTING);
-	glColor3f(0., 1., 0.);
+	//glDisable(GL_LIGHTING);
+	//glColor3f(0., 1., 0.);
+	if(polygonMode == GL_LINE)
+		pMaterialGrid->setValues();
+	else 
+		pMaterialFill->setValues();
 
 	glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
 	
@@ -63,7 +71,7 @@ void Cell::drawLeftFace(int x, int planeId, int z)
 	glEnd();
 
 	glDisable( GL_TEXTURE_2D );
-	glEnable(GL_LIGHTING);
+	//glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -71,8 +79,13 @@ void Cell::drawRightFace(int x, int planeId, int z)
 {
 	glPushMatrix();
 
-	glDisable(GL_LIGHTING);
-	glColor3f(0., 1., 0.);
+	//glDisable(GL_LIGHTING);
+	//glColor3f(0., 1., 0.);
+	//pMaterial->setValues();
+	if(polygonMode == GL_LINE)
+		pMaterialGrid->setValues();
+	else 
+		pMaterialFill->setValues();
 
 	glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
 	
@@ -95,7 +108,7 @@ void Cell::drawRightFace(int x, int planeId, int z)
 	glEnd();
 
 	glDisable( GL_TEXTURE_2D );
-	glEnable(GL_LIGHTING);
+	//glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -103,8 +116,13 @@ void Cell::drawBottomFace(int x, int planeId, int z)
 {
 	glPushMatrix();
 
-	glDisable(GL_LIGHTING);
-	glColor3f(0., 1., 0.);
+	//glDisable(GL_LIGHTING);
+	//glColor3f(0., 1., 0.);
+	//pMaterial->setValues();
+	if(polygonMode == GL_LINE)
+		pMaterialGrid->setValues();
+	else 
+		pMaterialFill->setValues();
 
 	glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
 	
@@ -127,13 +145,24 @@ void Cell::drawBottomFace(int x, int planeId, int z)
 	glEnd();
 
 	glDisable( GL_TEXTURE_2D );
-	glEnable(GL_LIGHTING);
+	//glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
 void Cell::setPolygonMode(int mode)
 {
 	polygonMode = mode;
+}
+
+int Cell::getPolygonMode()
+{
+	return polygonMode;
+}
+
+void Cell::setMaterials(std::tr1::shared_ptr<Material> grid, std::tr1::shared_ptr<Material> fill)
+{
+	pMaterialGrid = grid;
+	pMaterialFill = fill;
 }
 
 //----------------------------
@@ -155,10 +184,31 @@ PlaneOfCells::~PlaneOfCells()
 void PlaneOfCells::initCells()
 {
 	cell.resize(iNumOfCellsX*iNumOfCellsZ);
+	// Set cell's material to draw.
+	// Grid material.
+	vector_3d ambient = vector_3d(0.0, 10.0, 0.0);
+	vector_3d diffuse = vector_3d(0.0, 10.0, 0.0);
+	vector_3d specular = vector_3d(0.0, 10.0, 0.0); 
+	float shine = 50;
+	float alpha = 0.4;
+
+	std::tr1::shared_ptr<Material> pMaterialGrid = 
+		std::tr1::shared_ptr<Material>(new Material(ambient, diffuse, specular, shine, alpha) );
+
+	// Filling material.
+	ambient = vector_3d(0.0, 5.0, 0.0);
+	diffuse = vector_3d(0.0, 5.0, 0.0);
+	specular = vector_3d(0.0, 5.0, 0.0); 
+	shine = 50;
+	alpha = 0.5;
+	std::tr1::shared_ptr<Material> pMaterialFill = 
+		std::tr1::shared_ptr<Material>(new Material(ambient, diffuse, specular, shine, alpha) );
+
 	// Reset all the cube indexes to -1.
 	for(int ix = 0; ix < iNumOfCellsX; ix++)
 		for(int iz = 0; iz < iNumOfCellsZ; iz++){	// z-direction is the fast-scan direction.
 			cell[ix*iNumOfCellsX + iz].setCubeSize(cubeSize);
+			cell[ix*iNumOfCellsX + iz].setMaterials(pMaterialGrid, pMaterialFill);
 		}
 }
 
@@ -219,6 +269,15 @@ void PlaneOfCells::drawRightPlane()
 	int ix = iNumOfCellsX - 1;
 	for(int iz = 0; iz < iNumOfCellsZ; iz++)
 		cell[ix*iNumOfCellsX + iz].drawRightFace(ix, planeId, iz);
+}
+
+void PlaneOfCells::drawHighlightedBottomCells()
+{
+	for(int ix = 0; ix < iNumOfCellsX; ix++)
+		for(int iz = 0; iz < iNumOfCellsZ; iz++){
+			if( cell[ix*iNumOfCellsX + iz].getPolygonMode() == GL_FILL )
+				cell[ix*iNumOfCellsX + iz].drawBottomFace(ix, planeId, iz);
+		}
 }
 
 void PlaneOfCells::setFilledCellToDraw(int x, int z)
@@ -283,6 +342,7 @@ FixedCubes::FixedCubes(int planes, int x, int z, float size)
 	//iFiguresPerCube = 4;
 
 	bottomPlane = 0;		// Plane on which we highlight cells.
+	secondBottomPlane = 0;
 
 	// Create the required number of planes.
 	createPlanes();
@@ -315,13 +375,12 @@ void FixedCubes::draw()
 		plane[i]->drawRightPlane();
 	}
 
-	plane[0]->drawBottomPlane();
+	plane[bottomPlane]->drawBottomPlane();
+	plane[secondBottomPlane]->drawHighlightedBottomCells();
 
 	glPopMatrix();
 
 	// Draw fixed cubes.
-	//for(std::size_t i = 0; i < cubes.size(); ++i)
-		//cubes[i]->draw();
 	for(map_iter iterator = cubes.begin(); iterator != cubes.end(); iterator++)
 		iterator->second->draw();
 }
@@ -381,7 +440,9 @@ label:
 				}// End shift the cubes.	
 			}// End shift nonempty planes.
 
-			// Don't increase count i, start while loop again from the current plane i, 
+			--secondBottomPlane;	// Diminish the second highlighted plane.
+
+			// Don't increase count i, start the 'while' loop again from the current plane i, 
 			// which has just been shifted.
 			
 		}// End if plane is filled.
@@ -402,11 +463,13 @@ void FixedCubes::resetFilledCellToDraw(CellIndeces &id)
 void FixedCubes::setBottomCellToDraw(CellIndeces &id)
 {
 	plane[bottomPlane]->setBottomCellToDraw(id.x, id.z);
+	plane[secondBottomPlane]->setBottomCellToDraw(id.x, id.z);
 }
 
 void FixedCubes::resetBottomCellToDraw(CellIndeces &id)
 {
 	plane[bottomPlane]->resetBottomCellToDraw(id.x, id.z);
+	plane[secondBottomPlane]->resetBottomCellToDraw(id.x, id.z);
 }
 
 bool FixedCubes::isCellFilled(int x, int planeId, int z)
@@ -435,6 +498,13 @@ void FixedCubes::addCubes(Figure &f)
 		// Use cube id as an id in the function below.
 		fillCell(ci[i], cubeId );	// Reconsider the cube.size() as id when annihilation.
 	}
+
+	// Find the topmost nonempty plane.
+	for(std::size_t i = 0; i < plane.size(); ++i)
+		if( plane[i]->isPlaneEmpty() )
+			break;
+		else
+			secondBottomPlane = i;
 }
 
 void FixedCubes::fillCell(const CellIndeces &cellId, int cubeId)

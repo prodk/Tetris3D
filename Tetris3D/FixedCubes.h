@@ -22,6 +22,7 @@ public:
 	int getCubeIdx();
 
 	void setCubeSize(float size);
+	void setMaterials(std::tr1::shared_ptr<Material> grid, std::tr1::shared_ptr<Material> fill);
 
 	// Draw mesh functions.
 	void drawLeftFace(int x, int planeId, int z);
@@ -29,12 +30,16 @@ public:
 	void drawBottomFace(int x, int planeId, int z);
 
 	void setPolygonMode(int mode);
+	int getPolygonMode();
 
 private:
 	int cubeId;				// An id of the fixed cube, -1 otherwise.
 	int polygonMode;
 
 	float cubeSize;			// Required for drawing.
+
+	std::tr1::shared_ptr<Material> pMaterialGrid;
+	std::tr1::shared_ptr<Material> pMaterialFill;
 };
 
 //--------------------------------
@@ -53,6 +58,7 @@ public:
 	void drawLeftPlane();
 	void drawBottomPlane();
 	void drawRightPlane();
+	void drawHighlightedBottomCells();
 
 	void setFilledCellToDraw(int x, int z);
 	void resetFilledCellToDraw(int x, int z);
@@ -113,6 +119,7 @@ private:
 
 	float cubeSize;
 	int bottomPlane;
+	int secondBottomPlane;
 
 	std::vector<std::tr1::shared_ptr<PlaneOfCells> > plane;	// Vector of planes containing cells.
 

@@ -778,7 +778,7 @@ PlayScreen::PlayScreen(int idExt, float w, float h, SDL_Surface* s, TEXTURE_PTR_
 	//compWallIdx = -1;
 	iShowMessageCount = 0;
 	iMaxShowMessageCount = 100;
-	flDeltaAngleViewZ = 1.;//0.3;
+	flDeltaAngleViewZ = 3.;//0.3;
 	flDeltaScale = 0.01;
 	flDeltaPaddle = 0.01;
 
@@ -799,8 +799,8 @@ PlayScreen::~PlayScreen()
 void PlayScreen::initMembers(const Logic &logic)
 {
 	iNumOfPlanes = 10;
-	iNumOfCellsX = 4;
-	iNumOfCellsZ = 4;
+	iNumOfCellsX = 8;
+	iNumOfCellsZ = 8;
 	cubeSize = 1.;
 	// Get a fresh set of cells that track fixed cubes.
 	fixedCubes = 
@@ -830,11 +830,11 @@ void PlayScreen::initMembers(const Logic &logic)
 	angleViewYMax = 10.;//75.;				// Final initial angle view.
 	deltaAngleY = angleViewYMax * 0.02;	// Increments of the angle to rotate at the beginning.
 	angleViewZ = 0.;
-	angleViewX = 0.;
+	angleViewX = 10.;
 	//bPaddlePicked = false;
 	xPaddleOld = yPaddleOld = 0.;
 	flZaxisDistance = 15.f;
-	flLengthUnit = 4.3f;			// This influences the distance from the camera.
+	flLengthUnit = 5.5f;			// This influences the distance from the camera.
 									// The smaller the value, the closer the scene to the camera.
 	flScaleAll = 1.;					// Scaling factor.
 	flScaleMax = 4.;
@@ -1062,6 +1062,8 @@ void PlayScreen::doDrawing(Logic &logic)
 
 	currentFigure->draw();
 
+	nextFigure->drawAsNext();
+
 	// Draw all the shapes.
 	//for(std::size_t i = 0; i < shapes.size(); i++){
 		//shapes[i]->draw();
@@ -1086,11 +1088,12 @@ void PlayScreen::handleMouseButtonDown(const SDL_Event& sdle, Logic &logic)
 		//	yPaddleOld = sdle.button.y;
 		//}
 		xViewOld = sdle.button.x;
-		break;
-
-	case SDL_BUTTON_RIGHT:	// Rotate around x using right mouse button.
 		yViewOld = sdle.button.y;
 		break;
+
+	//case SDL_BUTTON_RIGHT:	// Rotate around x using right mouse button.
+		//yViewOld = sdle.button.y;
+		//break;
 
 	case SDL_BUTTON_WHEELUP:
 		angleViewZ -= flDeltaAngleViewZ;			// Rotate around the horizontal axis.
@@ -1115,12 +1118,16 @@ void PlayScreen::handleMouseButtonUp(const SDL_Event& sdle, Logic &logic)
 // 'magic numbers' are below.
 void PlayScreen::handleMouseMotion(const SDL_Event& sdle, Logic &logic)
 {
+	//std::cerr << sdle.motion.state << std::endl;
 	switch(sdle.motion.state)
-	{
+	{		
 	case SDL_BUTTON_LEFT:
 		//if(!bPaddlePicked){
 			angleViewY += sdle.motion.x - xViewOld;	// If paddle is not chosen, rotate view.			
-			xViewOld = sdle.motion.x;			
+			xViewOld = sdle.motion.x;
+
+			angleViewX += sdle.motion.y - yViewOld;
+			yViewOld = sdle.motion.y;
 		//}
 		//else{
 		//	// 'magic numbers'.
@@ -1134,10 +1141,10 @@ void PlayScreen::handleMouseMotion(const SDL_Event& sdle, Logic &logic)
 		//}
 		break;
 
-	case SDL_BUTTON_RIGHT:
-		angleViewX += sdle.motion.y - yViewOld;
-		yViewOld = sdle.motion.y;
-		break;
+	//case SDL_BUTTON_RIGHT:
+		//angleViewX += sdle.motion.y - yViewOld;
+		//yViewOld = sdle.motion.y;
+		//break;
 	}
 }
 
@@ -1317,23 +1324,28 @@ void PlayScreen::initView()
 
 void PlayScreen::drawAxes() const
 {
+	glPushMatrix();
+
+	glTranslatef(0.75*cubeSize*iNumOfCellsX, 0., 0.5*cubeSize*iNumOfCellsX);
 	glDisable(GL_LIGHTING);
 	glBegin(GL_LINES);
 	// x, red
 	glColor3f(2.f, 0.f, 0.f);
-	glVertex3f(-5.f, 0.f, 0.f);
-	glVertex3f(5.f, 0.f, 0.f);
+	glVertex3f(0.f, 0.f, 0.f);
+	glVertex3f(0.25*cubeSize*iNumOfCellsX, 0.f, 0.f);
 	// y, green
 	glColor3f(0.f, 2.f, 0.f);
-	glVertex3f(0.f, -5.f, 0.f);
-	glVertex3f(0.f, 5.f, 0.f);
+	glVertex3f(0.f, 0.f, 0.f);
+	glVertex3f(0.f, 0.25*cubeSize*iNumOfPlanes, 0.f);
 	// z, blue
 	glColor3f(0.f, 0.f, 2.f);
-	glVertex3f(0.f, 0.f, -5.f);
-	glVertex3f(0.f, 0.f, 5.f);
+	glVertex3f(0.f, 0.f, 0.f);
+	glVertex3f(0.f, 0.f, 0.25*cubeSize*iNumOfCellsZ);
 	glEnd();
 
 	glEnable(GL_LIGHTING);
+
+	glPopMatrix();
 }
 
 void PlayScreen::doLogic(Logic &logic)
@@ -1346,6 +1358,7 @@ void PlayScreen::doLogic(Logic &logic)
 		//currentFigure->moveY();// Fall in y direction.
 	}
 
+	annihilateLayers();	// Remove completely filled planes of cubes.
 	// Save current filled cells to the previous cells.
 	previousCells = currentCells;
 
@@ -1354,10 +1367,10 @@ void PlayScreen::doLogic(Logic &logic)
 	currentFigure->getCubeIndeces(currentCells);
 
 	// Specify what cells should be filled/unfilled.
-	manageCellsFilling();
+	manageCellsFilling();	
 
 	checkCollision(logic);		// Figure collision with the fixed cubes.
-	annihilateLayers();	// Remove completely filled planes of cubes.
+	//annihilateLayers();	// Remove completely filled planes of cubes.
 
 	// Move the shapes.
 	//bool bReset = false;	// Whether to move the ball to the origin.
@@ -1409,26 +1422,25 @@ void PlayScreen::play(Logic &logic, SDL_Event sdlEvent)
 	//initResize();
 	if(logic.bNewRound){
 		logic.bNewRound = false;
-		logic.bNewFigure = true;
+		//logic.bNewFigure = true;
+		// The first current and next figures are created in the setupNewRound().
 		setupNewRound(logic);
 	}
 
 	if( logic.bNewFigure ){
 		logic.bNewFigure = false;
-		// Put the code below in a function: createNewFigure() or createFigure().
-		iCurrentFigureId += cubesPerFigure;
-		//std::size_t nOfCubes = 4;
-		// Put this probably in a separate function, maybe to the setupRound.
-		// Replace the magic number by a member variable.
-		vFigureOrigin = vector_3d(0., 3., 0.);	// Must be multiple of the cube size.
-		//std::size_t idFig = 0;
-		//int size =1;
-		currentFigure = 
-			//std::tr1::shared_ptr<Figure>( new Lfigure(nOfCubes, origin, idFig, size, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
-			std::tr1::shared_ptr<Figure>( new Ofigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
-			//std::tr1::shared_ptr<Figure>( new Sfigure(nOfCubes, origin, idFig, size, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
-			//std::tr1::shared_ptr<Figure>( new Ifigure(nOfCubes, origin, idFig, size, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
-			//std::tr1::shared_ptr<Figure>( new Tfigure(nOfCubes, origin, idFig, size, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+		
+		
+
+		currentFigure = nextFigure;
+			//std::tr1::shared_ptr<Figure>( new Lfigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+			//std::tr1::shared_ptr<Figure>( new Ofigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+			//std::tr1::shared_ptr<Figure>( new Sfigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+			//std::tr1::shared_ptr<Figure>( new Ifigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+			//std::tr1::shared_ptr<Figure>( new Tfigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+
+		nextFigure = createNewFigure();
+			//std::tr1::shared_ptr<Figure>( new Tfigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
 	}
 
 	// Draw the scene.
@@ -1472,6 +1484,10 @@ void PlayScreen::setupNewRound(Logic &logic)
 	initMembers(logic);
 	//addShapes(logic);
 	logic.notifyObservers();			// Tell the GameApp to use a new round sound.
+
+	// Create the current and the next figures.
+	currentFigure = createNewFigure();
+	nextFigure = createNewFigure();
 }
 
 // Observer pattern method.
@@ -1676,7 +1692,6 @@ void PlayScreen::checkCollision(Logic &logic)
 			currentFigure.reset();
 
 			// Set the flag that says that there is a need for the new figure. 
-			// Use bNewRound for the moment, change it later.
 			logic.bNewFigure = true;
 
 			break;
@@ -1687,4 +1702,40 @@ void PlayScreen::checkCollision(Logic &logic)
 void PlayScreen::annihilateLayers()
 {
 	fixedCubes->annihilateLayer();
+}
+
+std::tr1::shared_ptr<Figure> PlayScreen::createNewFigure()
+{
+	iCurrentFigureId += cubesPerFigure;
+	vFigureOrigin = vector_3d(0., 0.5*(iNumOfPlanes - 2), 0.);	// Must be multiple of the cube size.
+
+	switch( (iCurrentFigureId/cubesPerFigure) % (cubesPerFigure+1) ){
+	case 0:	// Lfig.
+		return 
+		std::tr1::shared_ptr<Figure>( new Lfigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+	
+	case 1:// Ofig.
+		return
+		std::tr1::shared_ptr<Figure>( new Ofigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+
+	case 2:// Sfig.
+		return
+		std::tr1::shared_ptr<Figure>( new Sfigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+	
+	case 3:// Ifig.
+		return
+		std::tr1::shared_ptr<Figure>( new Ifigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+	
+	case 4:// Tfig.
+		return
+		std::tr1::shared_ptr<Figure>( new Tfigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+
+	}// End switch.
+
+	return 
+		//std::tr1::shared_ptr<Figure>( new Lfigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+		//std::tr1::shared_ptr<Figure>( new Ofigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+		//std::tr1::shared_ptr<Figure>( new Sfigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+		//std::tr1::shared_ptr<Figure>( new Ifigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+		std::tr1::shared_ptr<Figure>( new Tfigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
 }

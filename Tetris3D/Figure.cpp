@@ -22,6 +22,16 @@ void Figure::draw()
 		cubes[i]->draw();
 }
 
+void Figure::drawAsNext()
+{
+	glPushMatrix();
+	glTranslatef(-cubeSize*iNumOfCellsX, 0.0, 0.0);
+	for(std::size_t i = 0; i < cubes.size(); ++i)
+		cubes[i]->draw();
+
+	glPopMatrix();
+}
+
 void Figure::moveX(int factor, FixedCubes& fc)
 {
 	// Move only if the figure doesn't go beyond the borders of the scene.
@@ -386,7 +396,7 @@ void Sfigure::createCubes()
 	vector_3d center = vOrigin;
 
 	// Put the rotation point to one of the verteces.
-	center[0] += 0.5*cubeSize;
+	center[0] -= 0.5*cubeSize;
 	center[1] += 0.5*cubeSize;
 	center[2] += 0.5*cubeSize;
 

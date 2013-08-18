@@ -15,6 +15,7 @@ public:
 
 	// Functions to override.
 	virtual void draw();
+	virtual void drawAsNext();
 	virtual void rotateX(FixedCubes& fc);
 	virtual void rotateY(FixedCubes& fc);
 	virtual void rotateZ(FixedCubes& fc);

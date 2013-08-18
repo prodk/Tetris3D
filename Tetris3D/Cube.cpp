@@ -15,9 +15,19 @@ Cube::~Cube(void)
 void Cube::draw()
 {
 	glPushMatrix();
+	//glDisable(GL_LIGHTING);
+	//glColor3f(0.6f, 0.6f, 0.6f);
 	material.setValues();
 	glTranslatef(vCenter[0], vCenter[1], vCenter[2]);	// Move the cube's center.
 	glutWireCube(size);
+
+	//glDisable(GL_LIGHTING);
+	//glColor3f(0.5f, 1.f, 1.f);
+	glPolygonMode(GL_FRONT, GL_FILL);
+	glMaterialf(GL_FRONT, GL_ALPHA, 0.1);
+	glutSolidCube(0.95*size);
+	//glEnable(GL_LIGHTING);
+
 	glPopMatrix();
 }
 

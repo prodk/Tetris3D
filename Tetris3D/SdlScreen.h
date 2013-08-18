@@ -201,11 +201,13 @@ private:
 	void manageCellsFilling();	// Specify which cells should be drawn as filled.
 	void checkCollision(Logic &logic);		// Figure collision with the fixed cubes.
 	void annihilateLayers();	// Remove completely filled planes of cubes.
+	std::tr1::shared_ptr<Figure> createNewFigure();
 
 	// Private members.
 private:
 	// Game logic.
 	std::tr1::shared_ptr<Figure> currentFigure;
+	std::tr1::shared_ptr<Figure> nextFigure;
 	int iFrameDelayMove;	// Number of frames to wait before moves.
 
 	int iNumOfPlanes;

@@ -4,7 +4,7 @@
 #include "GameApp.h"
 
 GameApp::GameApp(void) :
-flScreenWidth(1024), flScreenHeight(640), strGameName("Ping Pong 3D"), 
+flScreenWidth(1024), flScreenHeight(640), strGameName("Tetris 3D"), 
 	bBackgroundSound(true),
 	//Logic(start, options, howto, play, run, pause, over, bsound, asound);
 	logic(false, false, false, true, true, false, false,  false, true, 
@@ -203,7 +203,7 @@ void GameApp::setupRenderingContext()
 {
 	glShadeModel( GL_SMOOTH );				// Shading model - Gouraud (smooth).
 
-	glClearColor(0.5f, 0.5f, 0.5f, 0.0f);	// 'magic num': background color (not visible with textures).
+	glClearColor(0.4f, 0.4f, 0.4f, 0.0f);	// 'magic num': background color (not visible with textures).
 	glShadeModel(GL_SMOOTH);				// Smooth shading.
 
 	// Depth buffer.
@@ -215,7 +215,7 @@ void GameApp::setupRenderingContext()
 	// Antialiasing.
 	glEnable (GL_LINE_SMOOTH);
 	glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
-	glLineWidth (3.);
+	glLineWidth (2.);
 
 	// Blending (transparency).
 	glEnable (GL_BLEND);
@@ -232,7 +232,7 @@ void GameApp::setupRenderingContext()
 	GLfloat ambientLight[] = { 1.0f, 1.0f, 1.0f, 1.0f };	// 'magic number'
 	GLfloat diffuseLight[] = { 1.0f, 1.0f, 1.0f, 1.0f };	// 'magic number'
 	GLfloat specularLight[] = { 0.0f, 0.0f, 0.0f, 1.0f };	// 'magic number'
-	GLfloat position[] = {  0.0, 40.0, -20.0, 1.0 };		// 'magic number'
+	GLfloat position[] = {  0.0, 50.0, 0.0, 1.0 };		// 'magic number'
 
 	glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
