@@ -834,7 +834,7 @@ void PlayScreen::initMembers(const Logic &logic)
 	//bPaddlePicked = false;
 	xPaddleOld = yPaddleOld = 0.;
 	flZaxisDistance = 15.f;
-	flLengthUnit = 5.5f;			// This influences the distance from the camera.
+	flLengthUnit = 4.f;			// This influences the distance from the camera.
 									// The smaller the value, the closer the scene to the camera.
 	flScaleAll = 1.;					// Scaling factor.
 	flScaleMax = 4.;
@@ -1051,6 +1051,7 @@ void PlayScreen::doDrawing(Logic &logic)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear buffer for new data.
 	// Draw the background image.	
 	//drawBackgroundTexture( (id+(logic.iRound-1)%3), 0.5);
+	drawBackgroundTexture(id, 1.);
 	// Initialize the screen/scene.
 	initResize();
 	initView();
@@ -1070,7 +1071,7 @@ void PlayScreen::doDrawing(Logic &logic)
 	//}
 
 	// Draw the score.
-	//drawScoreAndRoundOptimized(logic);
+	drawScoreAndRoundOptimized(logic);
 
 	glFlush();
 }
@@ -1707,7 +1708,7 @@ void PlayScreen::annihilateLayers()
 std::tr1::shared_ptr<Figure> PlayScreen::createNewFigure()
 {
 	iCurrentFigureId += cubesPerFigure;
-	vFigureOrigin = vector_3d(0., 0.5*(iNumOfPlanes - 2), 0.);	// Must be multiple of the cube size.
+	vFigureOrigin = vector_3d(0., 0.5*(iNumOfPlanes - 4), 0.);	// Must be multiple of the cube size.
 
 	switch( (iCurrentFigureId/cubesPerFigure) % (cubesPerFigure+1) ){
 	case 0:	// Lfig.

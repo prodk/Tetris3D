@@ -7,9 +7,9 @@ GameApp::GameApp(void) :
 flScreenWidth(1024), flScreenHeight(640), strGameName("Tetris 3D"), 
 	bBackgroundSound(true),
 	//Logic(start, options, howto, play, run, pause, over, bsound, asound);
-	logic(false, false, false, true, true, false, false,  false, true, 
+	logic(false, false, false, true, true, false, false, false, true, 
 	flScreenWidth, flScreenHeight),
-	iNumOfSounds(7), iNumOfFonts(1), iNumOfTextures(7)
+	iNumOfSounds(5), iNumOfFonts(1), iNumOfTextures(5)
 {
 	// Exceptions and bad values are caught/checked inside the functions and printed to stderr.
 	initLibraries();
@@ -54,7 +54,7 @@ int GameApp::setupSDL()
 	int bpp = info->vfmt->BitsPerPixel;
 
 	// Set window's icon.
-	SDL_Surface* s = IMG_Load("../data/textures/pp3d.png");
+	SDL_Surface* s = IMG_Load("../data/textures/tetris3d.png");
 	if(s != NULL){
 		SDL_WM_SetIcon(s, NULL);
 		SDL_FreeSurface(s);
@@ -84,20 +84,20 @@ void GameApp::loadSounds()
 	result = system->createStream("../data/audio/round1.mp3", FMOD_LOOP_NORMAL, 0, &sounds[1]);
 	checkErr(result, std::string("../data/audio/round1.mp3"));
 
-	result = system->createStream("../data/audio/round2.mp3", FMOD_LOOP_NORMAL, 0, &sounds[2]);
-	checkErr(result, std::string("../data/audio/round2.mp3"));
+	result = system->createStream("../data/audio/annihilate.mp3", FMOD_LOOP_NORMAL, 0, &sounds[2]);
+	checkErr(result, std::string("../data/audio/annihilate.mp3"));
 
-	result = system->createStream("../data/audio/round3.mp3", FMOD_LOOP_NORMAL, 0, &sounds[3]);
-	checkErr(result, std::string("../data/audio/round3.mp3"));
+	result = system->createStream("../data/audio/collide.mp3", FMOD_LOOP_NORMAL, 0, &sounds[3]);
+	checkErr(result, std::string("../data/audio/collide.mp3"));
 
-	result = system->createStream("../data/audio/normalwall.wav", FMOD_DEFAULT, 0, &sounds[4]);
-	checkErr(result, std::string("../data/audio/normalwall.wav"));
+	result = system->createStream("../data/audio/rotate.mp3", FMOD_DEFAULT, 0, &sounds[4]);
+	checkErr(result, std::string("../data/audio/rotate.mp3"));
 
-	result = system->createStream("../data/audio/absorbwall.wav", FMOD_DEFAULT, 0, &sounds[5]);
+	/*result = system->createStream("../data/audio/absorbwall.wav", FMOD_DEFAULT, 0, &sounds[5]);
 	checkErr(result, std::string("../data/audio/absorbwall.wav"));
 
 	result = system->createStream("../data/audio/paddle.mp3", FMOD_DEFAULT, 0, &sounds[6]);
-	checkErr(result, std::string("../data/audio/paddle.mp3"));
+	checkErr(result, std::string("../data/audio/paddle.mp3"));*/
 
 	// Start paused sounds.
 	channelRound.resize(3);
@@ -136,8 +136,8 @@ void GameApp::loadData()
 	textures[OPTIONS_SCREEN] = loadTexture("../data/textures/options.png");
 	textures[HOWTO_SCREEN] = loadTexture("../data/textures/howto.png");
 	textures[PLAY_SCREEN] = loadTexture("../data/textures/round1.png");
-	textures[PLAY_SCREEN+1] = loadTexture("../data/textures/round2.png");
-	textures[PLAY_SCREEN+2] = loadTexture("../data/textures/round3.png");
+	//textures[PLAY_SCREEN+1] = loadTexture("../data/textures/round2.png");
+	//textures[PLAY_SCREEN+2] = loadTexture("../data/textures/round3.png");
 
 	// Load sounds and fonts.
 	loadSounds();
@@ -203,7 +203,7 @@ void GameApp::setupRenderingContext()
 {
 	glShadeModel( GL_SMOOTH );				// Shading model - Gouraud (smooth).
 
-	glClearColor(0.4f, 0.4f, 0.4f, 0.0f);	// 'magic num': background color (not visible with textures).
+	glClearColor(0.3f, 0.3f, 0.3f, 0.0f);	// 'magic num': background color (not visible with textures).
 	glShadeModel(GL_SMOOTH);				// Smooth shading.
 
 	// Depth buffer.

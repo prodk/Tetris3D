@@ -190,7 +190,7 @@ void PlaneOfCells::initCells()
 	vector_3d diffuse = vector_3d(0.0, 10.0, 0.0);
 	vector_3d specular = vector_3d(0.0, 10.0, 0.0); 
 	float shine = 50;
-	float alpha = 0.4;
+	float alpha = 0.7;
 
 	std::tr1::shared_ptr<Material> pMaterialGrid = 
 		std::tr1::shared_ptr<Material>(new Material(ambient, diffuse, specular, shine, alpha) );
@@ -200,7 +200,7 @@ void PlaneOfCells::initCells()
 	diffuse = vector_3d(0.0, 5.0, 0.0);
 	specular = vector_3d(0.0, 5.0, 0.0); 
 	shine = 50;
-	alpha = 0.5;
+	alpha = 0.9;
 	std::tr1::shared_ptr<Material> pMaterialFill = 
 		std::tr1::shared_ptr<Material>(new Material(ambient, diffuse, specular, shine, alpha) );
 
