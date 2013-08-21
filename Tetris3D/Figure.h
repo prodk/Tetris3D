@@ -3,9 +3,10 @@
 #ifndef FIGURE_H
 #define FIGURE_H
 #include "Cube.h"
-//#include "FixedCubes.h"
 
-class FixedCubes;
+class PlaneOfCells;
+
+typedef std::vector<std::tr1::shared_ptr<PlaneOfCells> > pPlanes;
 
 class Figure
 {
@@ -16,24 +17,25 @@ public:
 	// Functions to override.
 	virtual void draw();
 	virtual void drawAsNext();
-	virtual void rotateX(FixedCubes& fc);
-	virtual void rotateY(FixedCubes& fc);
-	virtual void rotateZ(FixedCubes& fc);
+	virtual void rotateX(pPlanes& planes);
+	virtual void rotateY(pPlanes& planes);
+	virtual void rotateZ(pPlanes& planes);
 
 	// Functions with the fixed implementation.
-	void moveX(int factor, FixedCubes& fc);
-	void moveY();
-	void moveZ(int factor, FixedCubes& fc);
+	void moveX(int factor, pPlanes& planes);
+	void moveY(int factor, pPlanes& planes);
+	void moveZ(int factor, pPlanes& planes);
 
 	// Prevent from movement/rotation that results in a cube outside the scene.
-	bool testMoveX(int factor, FixedCubes& fc);	// Returns true if the figure doesn't move outside the scene.
-	bool testMoveZ(int factor, FixedCubes& fc); // Returns true if the figure doesn't move outside the scene.
+	bool testMoveX(int factor, pPlanes& planes);	// Returns true if the figure doesn't move outside the scene.
+	bool testMoveY(int factor, pPlanes& planes);	// Returns true if the figure doesn't move outside the scene.
+	bool testMoveZ(int factor, pPlanes& planes); // Returns true if the figure doesn't move outside the scene.
 
-	bool testRotateX(FixedCubes& fc);
-	bool testRotateY(FixedCubes& fc);
-	bool testRotateZ(FixedCubes& fc);
+	bool testRotateX(pPlanes& planes);
+	bool testRotateY(pPlanes& planes);
+	bool testRotateZ(pPlanes& planes);
 
-	void getCubeIndeces(std::vector<CellIndeces> &id);
+	void getCubeIndeces(std::vector<CellIndeces> &id);// Gets indeces of all the cubes of the Figure.
 	const std::vector<std::tr1::shared_ptr<Cube> > & getCubes();
 
 protected:

@@ -15,18 +15,13 @@ Cube::~Cube(void)
 void Cube::draw()
 {
 	glPushMatrix();
-	//glDisable(GL_LIGHTING);
-	//glColor3f(0.6f, 0.6f, 0.6f);
 	material.setValues();
 	glTranslatef(vCenter[0], vCenter[1], vCenter[2]);	// Move the cube's center.
 	glutWireCube(size);
 
-	//glDisable(GL_LIGHTING);
-	//glColor3f(0.5f, 1.f, 1.f);
 	glPolygonMode(GL_FRONT, GL_FILL);
 	glMaterialf(GL_FRONT, GL_ALPHA, 0.1);
 	glutSolidCube(0.95*size);
-	//glEnable(GL_LIGHTING);
 
 	glPopMatrix();
 }
@@ -78,10 +73,10 @@ void Cube::moveX(int factor)
 	vCenter[0] += factor*size;
 }
 
-void Cube::moveY()
+void Cube::moveY(int factor)
 {
-	vOrigin[1] -= size;
-	vCenter[1] -= size;
+	vOrigin[1] += factor*size;
+	vCenter[1] += factor*size;
 }
 
 void Cube::moveZ(int factor)
@@ -155,6 +150,15 @@ vector_3d Cube::testMoveX(int factor)
 	vector_3d testCenter;
 	testCenter = vCenter;	
 	testCenter[0] += factor*size;
+
+	return testCenter;
+}
+
+vector_3d Cube::testMoveY(int factor)
+{
+	vector_3d testCenter;
+	testCenter = vCenter;	
+	testCenter[1] += factor*size;
 
 	return testCenter;
 }

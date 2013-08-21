@@ -6,13 +6,13 @@
 // Most headers are in the "Material.h" and in "Shape.h".
 
 // Std.
-#include <cstdlib>
-#include <ctime>
+#include <cstdlib>		// standard C functions, like fprintf.
+#include <ctime>		// time() function for random seed.
 #include <string>
 #include "SdlScreen.h"
 
 // The main class which contains all the game ingredients.
-class GameApp : public Observer
+class GameApp : public Observer		// The GameApp is an Observer.
 {
 public:
 	GameApp(void);
@@ -23,7 +23,7 @@ public:
 	// Private methods.
 private:
 	int initLibraries();			// Initialize: SDL, OGL, sound, game params, rand numbers.
-	void loadData();				// Load sounds, textures.
+	void loadData();				// Load sounds, textures, fonts.
 	void setupRoundParams();		// Initialize the parameters of all the rounds.
 	void createScreens();
 	void registerObservers();		// What objects should be tracked by the Subject in the Observer pattern.
@@ -31,7 +31,7 @@ private:
 	int setupSound();				// Init fmod library.
 
 	// Data load.
-	std::tr1::shared_ptr<TEXTURE> loadTexture(const std::string &fileName);// Factory function
+	std::tr1::shared_ptr<TEXTURE> loadTexture(const std::string &fileName);// Factory function.
 	void loadSounds();
 	void loadFonts();
 	
@@ -68,12 +68,12 @@ private:
 	std::vector<FMOD::Sound*> sounds;
 	FMOD::System *system;
 	FMOD::Channel *channelOptions;
-	std::vector<FMOD::Channel *> channelRound;	
+	std::vector<FMOD::Channel*> channelRound;	
 
 	// Data.
 	std::string strGameName;
 	SDL_Surface* surfaceGame;			// SDL surface on which everything is rendered.
-	std::vector<TTF_Font* > fonts;	
+	std::vector<TTF_Font*> fonts;	
 	std::vector<std::tr1::shared_ptr<TEXTURE> > textures;
 
 	// Data-related constants.

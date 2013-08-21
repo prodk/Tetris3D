@@ -5,9 +5,6 @@
 
 #include "GuiObject.h"
 #include "Figure.h"
-//#include "Ball.h"
-//#include "Wall.h"
-//#include "Paddle.h"
 #include <map>
 #include "FixedCubes.h"
 
@@ -168,7 +165,7 @@ private:
 	void handleResize(const SDL_Event& sdle, Logic &l);
 	void handleMouseMotion(const SDL_Event& sdle, Logic &l);
 	void handleMouseButtonDown(const SDL_Event& sdle, Logic &l);
-	void handleMouseButtonUp(const SDL_Event& sdle, Logic &l);
+	//void handleMouseButtonUp(const SDL_Event& sdle, Logic &l);
 
 	// OpenGl-specific.
 	void drawAxes() const;			// Currently not used, but exists just in case.
@@ -177,9 +174,6 @@ private:
 	void rotateView(float dx);
 	
 	void initMembers(const Logic &l);
-
-	//int pickObject(int x, int y);	// Returns the type of the object under cursor.
-	//void addShapes(Logic &l);
 
 	void drawScoreAndRound(Logic &l);// Currently not used, as it is too computationally demanding.
 
@@ -198,9 +192,9 @@ private:
 		float angley);
 	void drawScoreAndRoundOptimized(Logic &logic);
 
-	void manageCellsFilling();	// Specify which cells should be drawn as filled.
+	void manageCellsFilling();				// Specify which cells should be drawn as filled.
 	void checkCollision(Logic &logic);		// Figure collision with the fixed cubes.
-	void annihilateLayers();	// Remove completely filled planes of cubes.
+	void annihilateLayers();				// Remove completely filled planes of cubes.
 	std::tr1::shared_ptr<Figure> createNewFigure();
 
 	// Private members.
@@ -208,25 +202,36 @@ private:
 	// Game logic.
 	std::tr1::shared_ptr<Figure> currentFigure;
 	std::tr1::shared_ptr<Figure> nextFigure;
-	int iFrameDelayMove;	// Number of frames to wait before moves.
+	int iFrameDelayMove;	// Number of frames to wait before moves, defines the falling speed.
 
 	int iNumOfPlanes;
 	int iNumOfCellsX;
 	int iNumOfCellsZ;
 	std::tr1::shared_ptr<FixedCubes> fixedCubes;
-	//std::vector<std::tr1::shared_ptr<Cube> > cubes;
-	//std::map<std::size_t, std::tr1::shared_ptr<Cube> > cubes;
 
 	int iCurrentFigureId;
 	vector_3d vFigureOrigin;
 	int cubesPerFigure;
 	float cubeSize;
 	std::vector<CellIndeces> currentCells;	// Indeces of cells that are occupied by the figure.
-	std::vector<CellIndeces> previousCells;// Cells that were occupied on the previous step.
-	//enum {BALL, WALL, LEFT_PADDLE, RIGHT_PADDLE};	// Enum hack for shape types.
+	std::vector<CellIndeces> previousCells;	// Cells that were occupied on the previous step.
 
-	// A vector of pointers to Shapes. Ball is stored in the 0th item.	
-	//std::map<std::size_t, std::tr1::shared_ptr<Shape> > shapes;// Smart pointers for memory management.
+	// Data/methods from FixedCube.
+	void createPlanes();
+	int getTopEmptyPlane(int iStart, int iEnd);
+	void setHighlightedCells(std::vector<CellIndeces>& cells);
+	void resetHighlightedCells(std::vector<CellIndeces>& cells);
+	int bottomPlane;
+	int secondBottomPlane;
+	int iLowestCurrentPlane;
+	void drawPlanes();
+	void addCubes();
+	// Make the figure to fall down. Necessary to provide a normal tetris 
+	// behavior - move laterally after falling down.
+	void dropFigure(Logic& logic);	
+	bool isRoundFinished();	// Returns true if the figure touches the highest filled plane.
+	std::vector<std::tr1::shared_ptr<PlaneOfCells> > plane;	// Vector of planes containing cells.
+	// End data/methods from FixedCube.
 
 	// Game drawing related.
 	float flAngleFrustum;
@@ -242,10 +247,7 @@ private:
 	float flScaleAll;				// Zooming factor.
 	float angleViewYMax;			// Initial rotation before a round starts.
 	float deltaAngleY;				// Increments of the initial rotation.
-	float xPaddleOld;				// Previous positions of a paddle.
-	float yPaddleOld;
 
-	//bool bPaddlePicked;				// True if paddle is picked by the mouse.
 	RoundParamsVector roundParams;
 	std::size_t iCurRound;
 	bool bPlaySound;
@@ -254,15 +256,6 @@ private:
 	// Sizes/other parameters.
 	float flBoxWidth;		// !May be redundant.
 	float flBoxHeight;		// !May be redundant.
-	float flBoxThickness;	// !May be redundant.
-	//float flPaddleRadius;
-	//float flBallVel;
-	//float flBallDeltaVel;			// Increment of the Ball's velocity after reflection.
-	//float flCompPaddleVel;
-	//int leftPaddleIdx;
-	//int rightPaddleIdx;
-	//int userWallIdx;
-	//int compWallIdx;
 	float flScaleMax;				// Limit scaling the scene.
 	float flScaleMin;
 
@@ -271,7 +264,7 @@ private:
 	float flDeltaPaddle;			// Move paddle by this amount using keyboard.
 
 	int iShowMessageCount;			// How many frames the msg "You/Comp lost!" is shown.
-	int iMaxShowMessageCount;			// How many frames the msg "You/Comp lost!" is shown.
+	int iMaxShowMessageCount;		// How many frames the msg "You/Comp lost!" is shown.
 
 	// Members for optimized text output.
 	int iNumOfStringTextures;

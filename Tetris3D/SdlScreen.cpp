@@ -306,12 +306,6 @@ void ButtonScreen::processButton(std::size_t id, Logic & logic)
 		logic.notifyObservers();// Tell registered observers to change their settings.
 		break;
 
-	case ROUND_BTN:				// Change the round.
-		logic.iRound = logic.iRound % logic.iRoundMax + 1;
-		((OptionsButton*)guiObjects[id].get())->setCaption(std::to_string((_ULonglong)logic.iRound));
-		logic.notifyObservers(); 
-		break;
-
 	case BACK_BTN:
 		logic.bShowOptionsScreen = false;
 		logic.bShowStartScreen = true;
@@ -319,7 +313,7 @@ void ButtonScreen::processButton(std::size_t id, Logic & logic)
 	}// End switch(id).
 
 	if(bPlayButtonSound)
-		::playSound(system, sounds[4], channel);
+		::playSound(system, sounds[3], channel);
 }
 
 void ButtonScreen::doDrawing(Logic &logic)
@@ -610,14 +604,6 @@ void OptionsScreen::addButtons(Logic &logic)
 
 		// Button 2.
 		y -= 1.5*h;
-		name = "Round";
-		caption = std::to_string((_ULonglong)logic.iRound);
-		pGuiObj = new OptionsButton(x, y, w, h, 
-			ROUND_BTN, name, textures[0]->id, caption);	// The same texture id.
-		guiObjects.insert(std::make_pair(ROUND_BTN, std::tr1::shared_ptr<GuiObject>(pGuiObj)));
-
-		// Button 3.
-		y -= 1.5*h;
 		name = "Back";
 		pGuiObj = new Button(x, y, w, h, BACK_BTN, name, textures[0]->id);	// The same texture id.
 		guiObjects.insert(std::make_pair(BACK_BTN, std::tr1::shared_ptr<GuiObject>(pGuiObj)));
@@ -774,11 +760,9 @@ PlayScreen::PlayScreen(int idExt, float w, float h, SDL_Surface* s, TEXTURE_PTR_
 	 std::vector<std::tr1::shared_ptr<RoundParameters> > & rp) :
 	 SdlScreen(idExt, w, h, s, t, fnt, sys, snd), roundParams(rp)
 {
-	//userWallIdx = -1;
-	//compWallIdx = -1;
 	iShowMessageCount = 0;
 	iMaxShowMessageCount = 100;
-	flDeltaAngleViewZ = 3.;//0.3;
+	flDeltaAngleViewZ = 3.;
 	flDeltaScale = 0.01;
 	flDeltaPaddle = 0.01;
 
@@ -798,179 +782,52 @@ PlayScreen::~PlayScreen()
 
 void PlayScreen::initMembers(const Logic &logic)
 {
-	iNumOfPlanes = 10;
-	iNumOfCellsX = 8;
-	iNumOfCellsZ = 8;
+	// 'magic numbers'.
+	// Use 8 cubes in the lateral direction instead of 10 (as in 2D Tetris).
+	// This accelerates building.
+	iNumOfPlanes = 8;//10;
+	iNumOfCellsX = 4;//8;
+	iNumOfCellsZ = 4;//8;
 	cubeSize = 1.;
+
+	// From FixedCubes.
+	bottomPlane = 0;
+	secondBottomPlane = 0;
+	iLowestCurrentPlane = 0;
+	createPlanes();
+
 	// Get a fresh set of cells that track fixed cubes.
 	fixedCubes = 
 		std::tr1::shared_ptr<FixedCubes>( new FixedCubes(iNumOfPlanes, iNumOfCellsX, iNumOfCellsZ, cubeSize) );
 
-	cubesPerFigure = 4;
+	cubesPerFigure = 4;						// All the figures consist of 4 cubes.
 	currentCells.resize(cubesPerFigure);
 	previousCells.resize(cubesPerFigure);
 	iCurrentFigureId = -cubesPerFigure;		// Start from the negative to get 0 at the start.
-	iFrameDelayMove = 200;
 
+	// Moving speed.
+	iFrameDelayMove = 200;					// Moving speed.
+	
+	// Round info is not important, we have only one round.
 	iCurRound = logic.iRound - 1;
 	flBoxWidth = roundParams[iCurRound]->flBoxWidth;
 	flBoxHeight = roundParams[iCurRound]->flBoxHeight;
-	flBoxThickness = 0.5*roundParams[iCurRound]->flBoxHeight;
-	//flPaddleRadius = roundParams[iCurRound]->flPaddleRadius;
-	//flBallVel = roundParams[iCurRound]->flBallVelocity;
-	//flBallDeltaVel = roundParams[iCurRound]->flBallDeltaVel;
-	//flCompPaddleVel = roundParams[iCurRound]->flComputerPaddleVel;
-
-	
 
 	// 'magic numbers'.
 	xViewOld = 0.;
 	yViewOld = 0.;
 	angleViewY = 10.;					// Initial angle (around y) of the view.
-	angleViewYMax = 10.;//75.;				// Final initial angle view.
+	angleViewYMax = 10.;				// Final initial angle view.
 	deltaAngleY = angleViewYMax * 0.02;	// Increments of the angle to rotate at the beginning.
 	angleViewZ = 0.;
 	angleViewX = 10.;
-	//bPaddlePicked = false;
-	xPaddleOld = yPaddleOld = 0.;
 	flZaxisDistance = 15.f;
-	flLengthUnit = 4.f;			// This influences the distance from the camera.
+	flLengthUnit = 4.f;				// This influences the distance from the camera.
 									// The smaller the value, the closer the scene to the camera.
 	flScaleAll = 1.;					// Scaling factor.
 	flScaleMax = 4.;
 	flScaleMin = 0.1;
 }
-
-//void PlayScreen::addShapes(Logic &logic)
-//{
-//	// Cleanup the shapes from the previous round.
-//	shapes.clear();
-//	// Add shapes to the game.
-//	// 'magic numbers' - a lot of them are below.
-//	try {
-//		// Add ball.
-//		vector_3d ambient = vector_3d(0.0, 0.5, 0.0);
-//		vector_3d diffuse = vector_3d(0.0, 1.0, 0.0);
-//		vector_3d specular = vector_3d(0.0, 0.0, 0.0);
-//		float alpha = 1.0;						// Opaque ball.
-//		float shine = 0.;
-//		float maxv = 0.05;
-//		vector_3d center(0.0f, 0.0f, 0.0f);		// Ball starts at the center of the scene.
-//		// Random velocity using nonmember function.
-//		vector_3d velocity(
-//			::generateRandomSignInterval(0.9*flBallVel, flBallVel), 
-//			::generateRandomSignInterval(0.9*flBallVel, flBallVel), 
-//			::generateRandomSignInterval(0.9*flBallVel, flBallVel)
-//		);
-//		Shape* pShape = new Ball(BALL, center, 0.1*flBoxThickness, velocity, flBallDeltaVel,
-//			ambient, diffuse, specular, shine, alpha, flBallVel);
-//		shapes.insert(std::make_pair(BALL, std::tr1::shared_ptr<Shape>(pShape)));	
-//
-//		// Add walls.		
-//		// Left wall.
-//		center = vector_3d(-0.5*flBoxWidth, 0., 0.);
-//		vector_3d n = vector_3d(-1., 0., 0.);
-//		pShape = new AbsorbingWall( WALL, center, flBoxThickness, flBoxHeight, n);
-//		pShape->setSound(system, sounds[5]);
-//		userWallIdx = shapes.size();			// Save the index of the user's wall.
-//		shapes.insert(std::make_pair(shapes.size(), std::tr1::shared_ptr<Shape>(pShape)));
-//
-//		// Right wall.
-//		center = vector_3d(0.5*flBoxWidth, 0., 0.);
-//		n = vector_3d(1., 0., 0.);
-//		pShape = new AbsorbingWall( WALL, center, flBoxThickness, flBoxHeight, n);
-//		pShape->setSound(system, sounds[5]);
-//		compWallIdx = shapes.size();			// Use this only when absorbing wall.
-//
-//		shapes.insert(std::make_pair(shapes.size(), std::tr1::shared_ptr<Shape>(pShape)));
-//
-//		// Top wall.
-//		ambient = vector_3d(0.0, 0.5, 0.5);
-//		diffuse = vector_3d(0.0, 1.0, 1.0);
-//		specular = vector_3d(0.0, 0.2, 0.2);
-//		alpha = 0.4;	// A bit transparent wall.
-//		shine = 20.;
-//		center = vector_3d(0., 0.5*flBoxHeight, 0.);
-//		n = vector_3d(0., 1., 0.);
-//		pShape = new Wall( WALL, center, flBoxWidth, flBoxThickness, n,
-//			ambient, diffuse, specular, shine, alpha);
-//		pShape->setSound(system, sounds[4]);
-//		shapes.insert(std::make_pair(shapes.size(), std::tr1::shared_ptr<Shape>(pShape)));
-//
-//		// Bottom wall.
-//		ambient = vector_3d(0.0, 0.5, 0.5);
-//		diffuse = vector_3d(0.0, 1.0, 1.0);
-//		specular = vector_3d(0.0, 0.2, 0.2);
-//		alpha = 0.4;	// A bit transparent wall.
-//		shine = 20.;
-//		center = vector_3d(0., -0.5*flBoxHeight, 0.);
-//		n = vector_3d(0., -1., 0.);
-//		pShape = new Wall( WALL, center, flBoxWidth, flBoxThickness, n,
-//			ambient, diffuse, specular, shine, alpha);
-//		pShape->setSound(system, sounds[4]);
-//		shapes.insert(std::make_pair(shapes.size(), std::tr1::shared_ptr<Shape>(pShape)));
-//
-//		// Front wall.
-//		center = vector_3d(0., 0., 0.5*flBoxThickness);
-//		n = vector_3d(0., 0., 1.);
-//		pShape = new Wall( WALL, center, flBoxWidth, flBoxHeight, n);
-//		pShape->setSound(system, sounds[4]);
-//		shapes.insert(std::make_pair(shapes.size(), std::tr1::shared_ptr<Shape>(pShape)));
-//
-//		// Back wall.
-//		center = vector_3d(0., 0., -0.5*flBoxThickness);
-//		n = vector_3d(0., 0., -1.);
-//		pShape = new Wall( WALL, center, flBoxWidth, flBoxHeight, n);
-//		pShape->setSound(system, sounds[4]);
-//		shapes.insert(std::make_pair(shapes.size(), std::tr1::shared_ptr<Shape>(pShape)));
-//
-//		// Paddles.
-//		// User (left) paddle.
-//		center = vector_3d(-0.5*flBoxWidth, 0., 0.);
-//		n = vector_3d(-1., 0., 0.);			// Normal is -x.
-//		float angle = 90.0;
-//
-//		// Setup colors.
-//		ambient = vector_3d(0.5, 0.5, 0.0);
-//		diffuse = vector_3d(1., 1., 0.);
-//		specular = vector_3d(0.5, 0.5, 0.0);
-//		alpha = 1.;
-//		shine = 10.;
-//
-//		// Add user or computer paddle depending on the options.
-//		if(logic.bTrain)
-//			pShape = new ComputerPaddle( LEFT_PADDLE, center, n, flPaddleRadius, 0.01*flBoxWidth, 
-//			angle, 0.5*flBoxHeight, 0.5*flBoxThickness,
-//			ambient, diffuse, specular, shine, alpha, flBallDeltaVel, flCompPaddleVel);
-//		else
-//			pShape = new Paddle( LEFT_PADDLE, center, n, flPaddleRadius, 0.01*flBoxWidth, 
-//			angle, 0.5*flBoxHeight, 0.5*flBoxThickness,
-//			ambient, diffuse, specular, shine, alpha, flBallDeltaVel);
-//		pShape->setSound(system, sounds[6]);
-//		leftPaddleIdx = 7;
-//		shapes.insert(std::make_pair(shapes.size(), std::tr1::shared_ptr<Shape>(pShape)));
-//
-//		// Computer (right) paddle.
-//		center = vector_3d(0.5*flBoxWidth, 0., 0.);
-//		n = vector_3d(1., 0., 0.);			// Norm is x.
-//		angle = -90.0;
-//		// Setup colors.
-//		ambient = vector_3d(0.5, 0.0, 0.5);
-//		diffuse = vector_3d(1.0, 0.0, 1.0);
-//		specular = vector_3d(0.5, 0.0, 0.5);
-//		pShape = 
-//			new ComputerPaddle( RIGHT_PADDLE, center, n, flPaddleRadius, 0.01*flBoxWidth, 
-//			angle, 0.5*flBoxHeight, 0.5*flBoxThickness,
-//			ambient, diffuse, specular, shine, alpha, flBallDeltaVel, flCompPaddleVel);
-//		pShape->setSound(system, sounds[6]);
-//		rightPaddleIdx = 8;
-//		shapes.insert(std::make_pair(shapes.size(), std::tr1::shared_ptr<Shape>(pShape)));
-//	} // End try.
-//	catch(std::bad_alloc& ba) {
-//		std::cerr << "Failed to create one of the shapes in PlayScreen: memory error, " + std::string(ba.what()) << std::endl;		
-//		exit(1);
-//	}
-//}
 
 void PlayScreen::doInput(Logic &logic, SDL_Event sdlEvent)
 {    
@@ -1026,7 +883,7 @@ void PlayScreen::drawScoreAndRound(Logic &logic)
 	textColor.b = 1.;
 	
 	std::stringstream str0;
-	str0 << "R:" << logic.iRound << " U:" << logic.iUserScore << " C:" << logic.iCompScore;
+	str0 << "R:" << logic.iRound << " U:" << logic.iUserScore;
 	drawText(str0.str(), -0.195, -0.5*flBoxHeight, 0.35, 0.1, fonts[0], logic, textColor);
 
 	if(logic.bRoundFinished){
@@ -1050,25 +907,17 @@ void PlayScreen::doDrawing(Logic &logic)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear buffer for new data.
 	// Draw the background image.	
-	//drawBackgroundTexture( (id+(logic.iRound-1)%3), 0.5);
 	drawBackgroundTexture(id, 1.);
 	// Initialize the screen/scene.
 	initResize();
 	initView();
+
+	// Draw the axes, the grid, fixed cubes, the figure.
 	drawAxes();
-
-	//glutWireCube(10.);
-
+	drawPlanes();			// Grid of cubes with highlighting.
 	fixedCubes->draw();
-
 	currentFigure->draw();
-
 	nextFigure->drawAsNext();
-
-	// Draw all the shapes.
-	//for(std::size_t i = 0; i < shapes.size(); i++){
-		//shapes[i]->draw();
-	//}
 
 	// Draw the score.
 	drawScoreAndRoundOptimized(logic);
@@ -1082,19 +931,9 @@ void PlayScreen::handleMouseButtonDown(const SDL_Event& sdle, Logic &logic)
 	switch(sdle.button.button)
 	{
 	case SDL_BUTTON_LEFT:
-		//objName = pickObject(sdle.button.x, sdle.button.y);
-		//if(objName == LEFT_PADDLE){	// If user's paddle has been picked, grab it.
-		//	bPaddlePicked = true;
-		//	xPaddleOld = sdle.button.x;
-		//	yPaddleOld = sdle.button.y;
-		//}
 		xViewOld = sdle.button.x;
 		yViewOld = sdle.button.y;
 		break;
-
-	//case SDL_BUTTON_RIGHT:	// Rotate around x using right mouse button.
-		//yViewOld = sdle.button.y;
-		//break;
 
 	case SDL_BUTTON_WHEELUP:
 		angleViewZ -= flDeltaAngleViewZ;			// Rotate around the horizontal axis.
@@ -1106,46 +945,17 @@ void PlayScreen::handleMouseButtonDown(const SDL_Event& sdle, Logic &logic)
 	}// End switch.
 }
 
-void PlayScreen::handleMouseButtonUp(const SDL_Event& sdle, Logic &logic)
-{
-	switch(sdle.button.button)
-	{
-	case SDL_BUTTON_LEFT:
-		//bPaddlePicked = false;		// Paddle is released.
-		break;
-	}
-}
-
 // 'magic numbers' are below.
 void PlayScreen::handleMouseMotion(const SDL_Event& sdle, Logic &logic)
 {
-	//std::cerr << sdle.motion.state << std::endl;
 	switch(sdle.motion.state)
 	{		
-	case SDL_BUTTON_LEFT:
-		//if(!bPaddlePicked){
-			angleViewY += sdle.motion.x - xViewOld;	// If paddle is not chosen, rotate view.			
-			xViewOld = sdle.motion.x;
-
-			angleViewX += sdle.motion.y - yViewOld;
-			yViewOld = sdle.motion.y;
-		//}
-		//else{
-		//	// 'magic numbers'.
-		//	float ratioX = 3./flWidth;
-		//	float ratioY = 2.8/flHeight;
-		//	vector_3d dr(0., -ratioX*(sdle.motion.y - yPaddleOld), 
-		//		ratioY*(sdle.motion.x - xPaddleOld) );
-		//	shapes[leftPaddleIdx]->move(dr, false);
-		//	xPaddleOld = sdle.motion.x;
-		//	yPaddleOld = sdle.motion.y;
-		//}
+	case SDL_BUTTON_LEFT:		
+		angleViewY += sdle.motion.x - xViewOld;		// Rotate view.			
+		xViewOld = sdle.motion.x;
+		angleViewX += sdle.motion.y - yViewOld;
+		yViewOld = sdle.motion.y;		
 		break;
-
-	//case SDL_BUTTON_RIGHT:
-		//angleViewX += sdle.motion.y - yViewOld;
-		//yViewOld = sdle.motion.y;
-		//break;
 	}
 }
 
@@ -1169,88 +979,92 @@ void PlayScreen::handleKeyDown(const SDL_Event& sdle, Logic &logic)
 		logic.notifyObservers();		// Tell observers to change their sound behavior.
 		break;
 
-	case SDLK_p:	 //Scale.
+	case SDLK_p:	 // Zoom in.
 		if(flScaleAll < flScaleMax)
 			flScaleAll += flDeltaScale;
 		break;
 
-	case SDLK_m:
+	case SDLK_m:	// Zoom out.
 		if(flScaleAll > flScaleMin)
 			flScaleAll -= flDeltaScale;
 		break;
 
-	case SDLK_v:
+	case SDLK_v:	// Pause.
 		logic.bGamePaused = true;
 		logic.bNewRound = false;
 		logic.notifyObservers();
 		break;
 
-	case SDLK_SPACE:
+	case SDLK_SPACE:// Unpause.
 		logic.bGamePaused = false;
 		logic.notifyObservers();
 		break;
 
-	case SDLK_ESCAPE:
+	case SDLK_ESCAPE:// Quit.
 		logic.bAppRunning = false;
 		break;	
 
 		// Rotation.
 		// xy-plane, z-axis.
 	case SDLK_a:
-		if(bKeyDown)
-			currentFigure->rotateZ( (*fixedCubes) );
+		if(bKeyDown){
+			currentFigure->rotateZ( plane );
+			if(bPlaySound)
+				::playSound(system, sounds[4], channel);
+		}
 		break;
 
 		// xz-plane, y-axis.
 	case SDLK_s:
-		if(bKeyDown)
-			currentFigure->rotateY( (*fixedCubes) );
+		if(bKeyDown){
+			currentFigure->rotateY( plane );
+			if(bPlaySound)
+				::playSound(system, sounds[4], channel);
+		}
 		break;
 
 	case SDLK_d:
-		if(bKeyDown)
-			currentFigure->rotateX( (*fixedCubes) );
+		if(bKeyDown){
+			currentFigure->rotateX( plane );
+			if(bPlaySound)
+				::playSound(system, sounds[4], channel);
+		}
 		break;
 
-	case SDLK_RSHIFT:
+	case SDLK_RSHIFT:			// Accelerate the vertical movement of the figure.
 	case SDLK_LSHIFT:			// Fall through.
-		currentFigure->moveY();
+		{
+			int factor = -1;
+			currentFigure->moveY(factor, plane);
+		}
 		break;
 
 	case SDLK_LEFT:
 		{
 			int factor = -1;
-			currentFigure->moveX(factor, (*fixedCubes));
+			currentFigure->moveX(factor, plane);
 		}
-		//dr = vector_3d(0., 0.0, -flDeltaPaddle);
-		//shapes[leftPaddleIdx]->move(dr, false);
 		break;
 
 	case SDLK_RIGHT:
 		{
 			int factor = 1;
-			currentFigure->moveX(factor, (*fixedCubes));
+			currentFigure->moveX(factor, plane);
 		}
-		//dr = vector_3d(0., 0.0, flDeltaPaddle);
-		//shapes[leftPaddleIdx]->move(dr, false);
 		break;
 
 	case SDLK_UP:
 		{
 			int factor = -1;
-			currentFigure->moveZ(factor, (*fixedCubes));
+			currentFigure->moveZ(factor, plane);
 		}
-		//dr = vector_3d(0., flDeltaPaddle, 0.);
-		//shapes[leftPaddleIdx]->move(dr, false);
 		break;
 
 	case SDLK_DOWN:
 		{
 			int factor = 1;
-			currentFigure->moveZ(factor, (*fixedCubes));
+			currentFigure->moveZ(factor, plane);
 		}
-		//dr = vector_3d(0., -flDeltaPaddle, 0.);
-		//shapes[leftPaddleIdx]->move(dr, false);
 		break;
 	}
 }
@@ -1265,41 +1079,6 @@ void PlayScreen::handleResize(const SDL_Event& sdle, Logic &logic)
 
 	initResize();		// Avoid code duplication with setup matrices.
 }
-
-// Object selection using back buffer.
-//int PlayScreen::pickObject(int x, int y)
-//{
-//	// Render onto the back buffer using colors corresponding to names of the objects.
-//	initView();		// Avoid code duplication with doDrawing().
-//
-//	glDisable(GL_LIGHTING);
-//	// Draw all the shapes into the double buffer.
-//	for(std::size_t i = 0; i < shapes.size(); i++) {
-//		int name = shapes[i]->getId();
-//		// Use not material colors, but the shape-specific color for identification.
-//		glColor3f (0.3*name, 0., 0.);
-//		shapes[i]->draw();
-//	}
-//
-//	glFlush();
-//
-//	// Now read the pixel under cursor and analyze the color.
-//	GLint viewport[4];	
-//	glGetIntegerv (GL_VIEWPORT, viewport);
-//
-//	GLint mouse_x = x;
-//	GLint mouse_y = viewport[3] - y;
-//
-//	float pixel[3];
-//    glReadPixels(mouse_x, mouse_y, 1, 1, GL_RGB, GL_FLOAT, pixel);
-//    float r = pixel[0];
-//
-//	int iFigureType = (int)(r/0.3);
-//
-//	glEnable(GL_LIGHTING);
-//   
-//	return iFigureType;
-//}
 
 void PlayScreen::initResize()
 {
@@ -1351,139 +1130,61 @@ void PlayScreen::drawAxes() const
 
 void PlayScreen::doLogic(Logic &logic)
 {
-	static int count = 0;
-	count++;	// Put this at the end
-	if(count % iFrameDelayMove == 0){
-		count = 0;
-		
-		//currentFigure->moveY();// Fall in y direction.
-	}
+	// Drop figure was here.	
+	manageCellsFilling();	// Manage highlighted/unhighlighted cells during drawing.
 
-	annihilateLayers();	// Remove completely filled planes of cubes.
-	// Save current filled cells to the previous cells.
-	previousCells = currentCells;
-
-	// Get new filled cells for drawing filled cells.
-	// Define in what cells the cubes of the figure are currently located.
-	currentFigure->getCubeIndeces(currentCells);
-
-	// Specify what cells should be filled/unfilled.
-	manageCellsFilling();	
-
-	checkCollision(logic);		// Figure collision with the fixed cubes.
-	//annihilateLayers();	// Remove completely filled planes of cubes.
-
-	// Move the shapes.
-	//bool bReset = false;	// Whether to move the ball to the origin.
-	//for(std::size_t i = 0; i < shapes.size(); i++)
-	//	shapes[i]->move(vector_3d(0., 0., 0.), bReset);
-
-	//// Detect collisions with the ball.
-	//bool bCollided = false;
-	//for(int i = shapes.size() - 1; i >= 0; i--){	// Reverse order - check paddles first.
-	//	bCollided = shapes[i]->collide(shapes[0].get()); 
-	//	if(bCollided){
-	//		if(bPlaySound)
-	//			shapes[i]->playSound();
-	//		if(i == userWallIdx){		// User lost.
-	//			logic.iCompScore += 1;
-	//		}
-	//		if(i == compWallIdx){		// Comp lost.
-	//			logic.iUserScore += 1;
-	//		}
-	//		break;
-	//	}
-	//}
-
-	//// Check whether it's time to change the round.
-	//if(logic.iUserScore >= logic.iMaxScore){
-	//	logic.iRound = logic.iRound % logic.iRoundMax + 1;
-	//	logic.bRoundFinished = true;	// This flag provides a pause between rounds.
-	//}
- //   
- //   // If the player lost, repeat the round again.
-	//if(logic.iCompScore >= logic.iMaxScore){
-	//	logic.bGameOver = true;
-	//	logic.bRoundFinished = true;
-	//}
+	// Note: both previous and current highlighted cells are reset if collision occurs.
+	checkCollision(logic);		// Figure collision with the fixed cubes/bottom plane.
 }
 
 void PlayScreen::play(Logic &logic, SDL_Event sdlEvent)
 {
-	// New round: resize the screen, change round parameters/shapes, rotate the view.
-	/*if(logic.bNewRound){
-		setScreenSize(logic.flScreenWidth, logic.flScreenHeight);
-		initResize();		
-		setupNewRound(logic);
-		logic.bNewRound = false;
-		logic.bRotated = false;
-		logic.bGameOver = false;
-	}*/
-
-	//initResize();
+	// New round: resize the screen, change round parameters.
 	if(logic.bNewRound){
-		logic.bNewRound = false;
-		//logic.bNewFigure = true;
+		logic.bNewRound = false;		
+		setScreenSize(logic.flScreenWidth, logic.flScreenHeight);
+		initResize();
 		// The first current and next figures are created in the setupNewRound().
 		setupNewRound(logic);
 	}
 
 	if( logic.bNewFigure ){
 		logic.bNewFigure = false;
-		
-		
+		currentFigure = nextFigure;		// Make the next figure to be the current figure.
+		nextFigure = createNewFigure();	// Create the next new figure.
 
-		currentFigure = nextFigure;
-			//std::tr1::shared_ptr<Figure>( new Lfigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
-			//std::tr1::shared_ptr<Figure>( new Ofigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
-			//std::tr1::shared_ptr<Figure>( new Sfigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
-			//std::tr1::shared_ptr<Figure>( new Ifigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
-			//std::tr1::shared_ptr<Figure>( new Tfigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
-
-		nextFigure = createNewFigure();
-			//std::tr1::shared_ptr<Figure>( new Tfigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+		logic.bRoundFinished = isRoundFinished();
 	}
 
 	// Draw the scene.
-	doDrawing(logic);	// Drawing is before input/logic to ensure that figure is always present.
-
-	// Rotate the view at the beginning of a new round.
-	/*if( (angleViewY < angleViewYMax) && (!logic.bRotated ) )
-		angleViewY += deltaAngleY;
-	else
-		logic.bRotated = true;*/	
+	doDrawing(logic);	// It is before input/logic to be sure that the figure always exists.
 	
 	// Process input if the round started and is going on.
-	//if(logic.bRotated  && !logic.bRoundFinished){
+	if(!logic.bRoundFinished){
+		dropFigure(logic);				// Falling of the Figure with constant velocity.
 		doInput(logic, sdlEvent);
-		if( !logic.bGamePaused)		// Do logic if the game is not paused.
+		if(!logic.bGamePaused)			// Do logic if the game is not paused.
 			doLogic(logic);
-	//}
+	}
 
 	// If round finished, show a msg about who has lost.
-	//if(logic.bRoundFinished){
-	//	if(iShowMessageCount < iMaxShowMessageCount)// Show the msg for iMaxShowMessageCount frames.
-	//		++iShowMessageCount;
-	//	else{
-	//		iShowMessageCount = 0;
-	//		logic.bRoundFinished = false;
-	//		logic.bNewRound = true;
-	//	}
-	//}
-	
-	// Draw the scene.
-	//if(!logic.bNewFigure)
-		//doDrawing(logic);	
+	if(logic.bRoundFinished){
+		if(iShowMessageCount < iMaxShowMessageCount)// Show the msg for iMaxShowMessageCount frames.
+			++iShowMessageCount;
+		else{
+			iShowMessageCount = 0;
+			logic.bRoundFinished = false;
+			logic.bNewRound = true;
+		}
+	}	
 }
 
 void PlayScreen::setupNewRound(Logic &logic)
 {	
 	// Reset scores.
-	logic.iCompScore = 0;
 	logic.iUserScore = 0;
 
 	initMembers(logic);
-	//addShapes(logic);
 	logic.notifyObservers();			// Tell the GameApp to use a new round sound.
 
 	// Create the current and the next figures.
@@ -1605,7 +1306,7 @@ void PlayScreen::drawScoreAndRoundOptimized(Logic &logic)
 {
 	float txtW = 0.07;
 	float txtH = 0.11;
-	float x0 = -0.42*flBoxThickness;
+	float x0 = -0.42;//*flBoxThickness;
 	float y0 = -0.5*flBoxHeight;
 	float x, y;
 	float z = 0.;
@@ -1622,8 +1323,8 @@ void PlayScreen::drawScoreAndRoundOptimized(Logic &logic)
 	// Comp's score.
 	x += 1.15*txtW;
 	drawStringTexture(C, x, y, z, txtW, txtH, 0.);
-	x += 1*txtW;
-	drawStringTexture(logic.iCompScore, x, y, z, txtW, txtH, 0.);
+	//x += 1*txtW;
+	//drawStringTexture(logic.iCompScore, x, y, z, txtW, txtH, 0.);
 
 	// User's score.
 	x += 1.15*txtW;
@@ -1646,29 +1347,18 @@ void PlayScreen::drawScoreAndRoundOptimized(Logic &logic)
 
 void PlayScreen::manageCellsFilling()
 {
-	// At first unset the previous cells.
-	std::size_t i;
-	CellIndeces ci;
-	for(i = 0; i < previousCells.size(); ++i)
-		if(previousCells[i].plane >= 0){
-			fixedCubes->resetFilledCellToDraw(previousCells[i]);
-			// Reset the bottom plane.
-			ci.plane = 0;
-			ci.x = previousCells[i].x;
-			ci.z = previousCells[i].z;
-			fixedCubes->resetBottomCellToDraw(ci);
-		}
+	previousCells = currentCells;	// Save currently highlighted cells to the previous cells.
+	currentFigure->getCubeIndeces(currentCells);// Define what cells should be highlighted
 
-	// Then set the filled cells.
-	for(i = 0; i < currentCells.size(); ++i)
-		if(currentCells[i].plane >= 0){
-			fixedCubes->setFilledCellToDraw(currentCells[i]);
-			// Set the bottom plane.
-			ci.plane = 0;
-			ci.x = currentCells[i].x;
-			ci.z = currentCells[i].z;
-			fixedCubes->setBottomCellToDraw(ci);
-		}
+	// Find the smallest index of the plane currently filled with the Figure's cube.
+	iLowestCurrentPlane = currentCells[0].plane;
+	int size = currentCells.size();
+	for(int i = 0; i < size; ++i)
+		iLowestCurrentPlane = min(iLowestCurrentPlane, currentCells[i].plane);
+
+	resetHighlightedCells(previousCells);	// At first unset the previous cells.
+	
+	setHighlightedCells(currentCells);		// Then set the filled cells.
 }
 
 void PlayScreen::checkCollision(Logic &logic)
@@ -1680,29 +1370,106 @@ void PlayScreen::checkCollision(Logic &logic)
 
 	// Loop over the planes that are below the currently filled cells.
 	for(i = 0; i < currentCells.size(); ++i){
-		iPlaneBelow = currentCells[i].plane - 1;
+		iPlaneBelow = iLowestCurrentPlane - 1;
 		// If collision occurred.
-		if( (iPlaneBelow < 0) || 
-			( fixedCubes->isCellFilled(currentCells[i].x, iPlaneBelow, currentCells[i].z) ) )
-		{
-			// !Add later: make collision sound.
+		if(currentCells[i].plane == iLowestCurrentPlane){
+			if( (iPlaneBelow < 0) || 
+				( plane[iPlaneBelow]->isCellFilled(currentCells[i].x, currentCells[i].z) )
+			  )
+			{
+				// Make collision sound.
+				if(bPlaySound)
+					::playSound(system, sounds[3], channel);
 
-			// Add cubes from the figure to the fixed cubes, change their color.
-			fixedCubes->addCubes( (*currentFigure) );
-			// Delete the figure.
-			currentFigure.reset();
+				// Add fixed cubes and fill in the corresponding cells.
+				addCubes();
 
-			// Set the flag that says that there is a need for the new figure. 
-			logic.bNewFigure = true;
+				// Delete the figure.
+				currentFigure.reset();
+				// Set the flag that says that there is a need for the new figure. 
+				logic.bNewFigure = true;
+				// Reset the current highlighted cells to not to show them for the deleted figure.
+				resetHighlightedCells(currentCells);			
 
-			break;
-		}
-	}
+				break;
+			}
+		}// End if the curren plane is the lowest one.
+	}// End for i.
+
+	annihilateLayers();				// Remove completely filled planes of cubes.
 }
 
 void PlayScreen::annihilateLayers()
 {
-	fixedCubes->annihilateLayer();
+	int index;
+	int emptyValue = -1;
+	std::size_t i = 0;
+	while(i < plane.size()){
+		if( plane[i]->isFilled() ){
+			// Annihilate the plane.
+			// Get indeces of the cubes in this plane and delete these cubes.
+			for(int ix = 0; ix < iNumOfCellsX; ix++){
+				for(int iz = 0; iz < iNumOfCellsZ; iz++){
+					index = plane[i]->getCubeIndex(ix, iz);
+					// Remove the cube
+					if(index >= 0)
+						fixedCubes->eraseCube(index);
+					// Say that the cell is empty.
+					plane[i]->fillCell(ix, iz, emptyValue);
+					// Reset all the highlighted cubes in the bottommost plane.
+					plane[0]->resetHighlightedCell(ix, iz);
+#ifdef _DEBUG
+					std::cerr << "Plane " << i << " has been annihilated." << std::endl;
+#endif
+				}
+			}// End annihilate the plane.	
+
+			// Find the first empty plane above the annihilated plane.
+			std::size_t emptyPlaneIndex = 0;
+			for(std::size_t j = i+1; j < plane.size(); ++j){
+				if( plane[j]->isEmpty() ){
+					emptyPlaneIndex = j;
+#ifdef _DEBUG
+					std::cerr << "Empty plane " << emptyPlaneIndex << std::endl;
+#endif
+					// Use goto here; break can terminate the outer while loop too. 
+					// We don't want this.
+					goto label;	
+				}
+			}
+label:
+
+			// Shift all the nonempty planes by one plane to the bottom.
+			// This involves 2 steps:
+			// 1) copy the content of the cells of the upper plane to the current one.
+			// 2) shift the corresponding cubes; 			
+			for(int j = i; j < emptyPlaneIndex; ++j){
+				if( (j+1) < iNumOfPlanes )
+					plane[j]->copyCells( plane[j+1]->getCells() );// 1) copy cells of the upper plane to the current one.
+#ifdef _DEBUG
+				std::cerr << "plane " << j+1 << " moved to " << j << std::endl;
+#endif
+				// 2) shift the corresponding cubes.
+				for(int ix = 0; ix < iNumOfCellsX; ix++){
+					for(int iz = 0; iz < iNumOfCellsZ; iz++){
+						index = plane[j]->getCubeIndex(ix, iz);
+						// If the cell is not empty, move the cube by one cube size to the bottom.
+						if(index >= 0){
+							int factor = -1;
+							fixedCubes->moveCubeY(factor, index);
+						}
+					}
+				}// End shift the cubes.	
+			}// End shift nonempty planes.
+
+			--secondBottomPlane;	// Diminish the second highlighted plane.
+
+			// Don't increase count i, start the 'while' loop again from the current plane i, 
+			// which has just been shifted.
+			
+		}// End if plane is filled.
+		++i;	// Go to the next upper plane if no annihilation.
+	}
 }
 
 std::tr1::shared_ptr<Figure> PlayScreen::createNewFigure()
@@ -1710,7 +1477,14 @@ std::tr1::shared_ptr<Figure> PlayScreen::createNewFigure()
 	iCurrentFigureId += cubesPerFigure;
 	vFigureOrigin = vector_3d(0., 0.5*(iNumOfPlanes - 4), 0.);	// Must be multiple of the cube size.
 
-	switch( (iCurrentFigureId/cubesPerFigure) % (cubesPerFigure+1) ){
+	// Generate the random figure. 
+	int iMinId = 0;
+	int iMaxId = 5;
+	int iFigId = (float)generateRand((float)iMinId, (float)iMaxId);
+
+	std::cerr << iFigId << std::endl;
+
+	switch( iFigId ){
 	case 0:	// Lfig.
 		return 
 		std::tr1::shared_ptr<Figure>( new Lfigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
@@ -1734,9 +1508,143 @@ std::tr1::shared_ptr<Figure> PlayScreen::createNewFigure()
 	}// End switch.
 
 	return 
-		//std::tr1::shared_ptr<Figure>( new Lfigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
-		//std::tr1::shared_ptr<Figure>( new Ofigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
-		//std::tr1::shared_ptr<Figure>( new Sfigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
-		//std::tr1::shared_ptr<Figure>( new Ifigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
 		std::tr1::shared_ptr<Figure>( new Tfigure(cubesPerFigure, vFigureOrigin, iCurrentFigureId, cubeSize, iNumOfCellsX, iNumOfPlanes, iNumOfCellsZ) );
+}
+
+// FixedCubes methods.
+void PlayScreen::createPlanes()
+{
+	plane.resize(iNumOfPlanes);
+
+	for(std::size_t i = 0; i < plane.size(); i++){
+		plane[i] = 
+			std::tr1::shared_ptr<PlaneOfCells>( new PlaneOfCells(i, iNumOfCellsX, iNumOfCellsZ, cubeSize) );
+	}
+}
+
+void PlayScreen::drawPlanes()
+{
+	glPushMatrix();
+
+	// Translate the coordinates, such that the origin is at the center of the scene.
+	glTranslatef(-0.5*cubeSize*iNumOfCellsX, -0.5*cubeSize*iNumOfPlanes, -0.5*cubeSize*iNumOfCellsZ);
+
+	for(std::size_t i = 0; i < plane.size(); ++i){
+		plane[i]->drawLeftFaces();
+		plane[i]->drawRightFaces();
+	}
+
+	if(bottomPlane >= 0)
+		plane[bottomPlane]->drawBottomFaces();
+	if( (secondBottomPlane >= 0) && (secondBottomPlane < iNumOfPlanes) )
+		plane[secondBottomPlane]->drawHighlightedBottomCells();
+
+	glPopMatrix();
+}
+
+void PlayScreen::addCubes()
+{
+	std::vector<CellIndeces> ci;	// Cells where the cubes of the figure are located.
+	ci.resize(4);	
+	currentFigure->getCubeIndeces(ci);	// Get indeces of all the figure cubes in the cells.
+	
+	std::vector<std::tr1::shared_ptr<Cube> > c;
+	c = currentFigure->getCubes();	// Cubes of the collided figure.
+
+	// Loop over cubes, add them to the fixed cubes and fill in the corresponding cells.
+	for(std::size_t cellId = 0; cellId < ci.size(); cellId++){
+		int cubeId = c[cellId]->getId();
+		fixedCubes->insertCube(c[cellId], cubeId);
+		plane[ci[cellId].plane]->fillCell(ci[cellId].x, ci[cellId].z, cubeId);
+	}
+
+	// Find the topmost nonempty plane.
+	int iStart = 0;
+	int iEnd = plane.size();
+	secondBottomPlane = getTopEmptyPlane(iStart, iEnd);
+}
+
+int PlayScreen::getTopEmptyPlane(int iStart, int iEnd)
+{
+	int i;
+	for(i = iStart; i < iEnd; ++i)
+		if( plane[i]->isEmpty() )
+			return i;		
+
+	return i;
+}
+
+void PlayScreen::setHighlightedCells(std::vector<CellIndeces>& cells)
+{
+	int x, z, p;
+	std::size_t i;
+
+	for(i = 0; i < currentCells.size(); ++i)
+		if(cells[i].plane >= 0){
+			p = cells[i].plane;
+			x = cells[i].x;
+			z = cells[i].z;
+			if( (x >=0) && (x < iNumOfCellsX) && (z >= 0) && (z < iNumOfCellsZ)
+			  ){
+				plane[p]->setHighlightedLeftCell(z);
+				plane[p]->setHighlightedRightCell(z);
+				plane[p]->setHighlightedCell(x, z);
+				// Reset the bottom plane.
+				plane[bottomPlane]->setHighlightedCell(x, z);
+				plane[secondBottomPlane]->setHighlightedCell(x, z);
+			}
+		}
+}
+
+void PlayScreen::resetHighlightedCells(std::vector<CellIndeces>& cells)
+{
+	int x, z, p;
+	std::size_t i;
+
+	for(i = 0; i < cells.size(); ++i)
+		if(cells[i].plane >= 0){
+			p = cells[i].plane;
+			x = cells[i].x;
+			z = cells[i].z;
+			if( (x >=0) && (x < iNumOfCellsX) && (z >= 0) && (z < iNumOfCellsZ)
+			  ){
+				  plane[p]->resetHighlightedLeftCell(z);
+				  plane[p]->resetHighlightedRightCell(z);
+				  plane[p]->resetHighlightedCell(x, z);
+				  // Reset the bottom plane.
+				  plane[bottomPlane]->resetHighlightedCell(x, z);
+				  plane[secondBottomPlane]->resetHighlightedCell(x, z);
+			}
+		}
+}
+
+void PlayScreen::dropFigure(Logic& logic)
+{
+	static int count = 0;
+	int factor = -1;
+
+	count++;	// Number of frames between movements.
+	// Move the figure, if necessary.
+	if( (count % iFrameDelayMove == 0) && (!logic.bTrain) ){
+		count = 0;		
+		currentFigure->moveY(factor, plane);		// Fall in y direction.
+	}
+}
+
+bool PlayScreen::isRoundFinished()
+{
+	currentFigure->getCubeIndeces(currentCells);// Define what cells should be highlighted
+	// Get the index of the lowest plane of the figure.
+	iLowestCurrentPlane = currentCells[0].plane;
+	for(std::size_t i = 0; i < currentCells.size(); ++i)
+		iLowestCurrentPlane = min(iLowestCurrentPlane, currentCells[i].plane);
+	// Check the topmost empty plane. If it is the topmost one, then user lost.
+	// Because this means that the new figure touches the fixed cubes.
+	int iStart = 0;
+	int iEnd = plane.size();
+	int iTopPlane = getTopEmptyPlane(iStart, iEnd);
+
+	if( iLowestCurrentPlane < iTopPlane )
+		return true;
+	return false;
 }

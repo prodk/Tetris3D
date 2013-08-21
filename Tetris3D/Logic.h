@@ -33,7 +33,6 @@ public:
 
 	std::size_t iRound;			// Current round.
 	int iUserScore;
-	int iCompScore;
 
 	float flScreenWidth;
 	float flScreenHeight;
@@ -46,17 +45,11 @@ public:
 class RoundParameters
 {
 public:
-	RoundParameters(float w, float h, float bv, float bdv, float pv, float pr);
+	RoundParameters(float w, float h);
 	~RoundParameters();
 
 	float flBoxWidth;
 	float flBoxHeight;
-
-// !Remove these heritage of the PingPong3D later!
-	float flBallVelocity;
-	float flBallDeltaVel;			// Scale the velocity by this value after collisions with a paddle.
-	float flComputerPaddleVel;
-	float flPaddleRadius;
 };
 
 typedef std::vector<std::tr1::shared_ptr<RoundParameters> > RoundParamsVector;

@@ -25,38 +25,40 @@ void Figure::draw()
 void Figure::drawAsNext()
 {
 	glPushMatrix();
-	glTranslatef(-cubeSize*iNumOfCellsX, 0.0, 0.0);
+	glTranslatef(-cubeSize*(iNumOfCellsX + 1), 0.0, 0.0);
 	for(std::size_t i = 0; i < cubes.size(); ++i)
 		cubes[i]->draw();
 
 	glPopMatrix();
 }
 
-void Figure::moveX(int factor, FixedCubes& fc)
+void Figure::moveX(int factor, pPlanes& planes)
 {
 	// Move only if the figure doesn't go beyond the borders of the scene.
-	if( testMoveX(factor, fc) ){
+	if( testMoveX(factor, planes) ){
 		for(std::size_t i = 0; i < cubes.size(); ++i)
 			cubes[i]->moveX(factor);
 	}
 }
 
-void Figure::moveY()
+void Figure::moveY(int factor, pPlanes& planes)
 {
-	for(std::size_t i = 0; i < cubes.size(); ++i)
-		cubes[i]->moveY();
+	if( testMoveY(factor, planes) ){
+		for(std::size_t i = 0; i < cubes.size(); ++i)
+			cubes[i]->moveY(factor);
+	}
 }
 
-void Figure::moveZ(int factor, FixedCubes& fc)
+void Figure::moveZ(int factor, pPlanes& planes)
 {
 	// Move only inside the scene.
-	if( testMoveZ(factor, fc) ){
+	if( testMoveZ(factor, planes) ){
 		for(std::size_t i = 0; i < cubes.size(); ++i)
 			cubes[i]->moveZ(factor);
 	}
 }
 
-bool Figure::testMoveX(int factor, FixedCubes& fc)
+bool Figure::testMoveX(int factor, pPlanes& planes)
 {
 	float n;
 	vector_3d testCenter;
@@ -64,8 +66,6 @@ bool Figure::testMoveX(int factor, FixedCubes& fc)
 	float shiftX = 0.5*cubeSize*iNumOfCellsX;
 	float shiftY = 0.5*cubeSize*iNumOfPlanes;
 	float shiftZ = 0.5*cubeSize*iNumOfCellsZ;
-
-	//float shiftX = 0.5*cubeSize*iNumOfCellsX;
 
 	for(std::size_t i = 0; i < cubes.size(); ++i){
 		testCenter = cubes[i]->testMoveX(factor);
@@ -77,14 +77,14 @@ bool Figure::testMoveX(int factor, FixedCubes& fc)
 		iCellX = (testCenter[0] + shiftX)/cubeSize;
 		iPlane = (testCenter[1] + shiftY)/cubeSize;
 		iCellZ = (testCenter[2] + shiftZ)/cubeSize;
-		if( fc.isCellFilled(iCellX, iPlane, iCellZ) )
+		if( planes[iPlane]->isCellFilled(iCellX, iCellZ) )
 			return false;
 	}
 
 	return true;
 }
 
-bool Figure::testMoveZ(int factor, FixedCubes& fc)
+bool Figure::testMoveY(int factor, pPlanes& planes)
 {
 	float n;
 	vector_3d testCenter;
@@ -92,7 +92,32 @@ bool Figure::testMoveZ(int factor, FixedCubes& fc)
 	float shiftX = 0.5*cubeSize*iNumOfCellsX;
 	float shiftY = 0.5*cubeSize*iNumOfPlanes;
 	float shiftZ = 0.5*cubeSize*iNumOfCellsZ;
-	//float shiftZ = 0.5*cubeSize*iNumOfCellsZ;
+
+	for(std::size_t i = 0; i < cubes.size(); ++i){
+		testCenter = cubes[i]->testMoveY(factor);
+		n = (testCenter[1] + shiftY)/cubeSize;
+		if( (n < 0) || (n >= iNumOfPlanes) )
+			return false;
+
+		// Define cell indeces.
+		iCellX = (testCenter[0] + shiftX)/cubeSize;
+		iPlane = (testCenter[1] + shiftY)/cubeSize;
+		iCellZ = (testCenter[2] + shiftZ)/cubeSize;
+		if( planes[iPlane]->isCellFilled(iCellX, iCellZ) )
+			return false;
+	}
+
+	return true;
+}
+
+bool Figure::testMoveZ(int factor, pPlanes& planes)
+{
+	float n;
+	vector_3d testCenter;
+	int iCellX, iPlane, iCellZ;
+	float shiftX = 0.5*cubeSize*iNumOfCellsX;
+	float shiftY = 0.5*cubeSize*iNumOfPlanes;
+	float shiftZ = 0.5*cubeSize*iNumOfCellsZ;
 
 	for(std::size_t i = 0; i < cubes.size(); ++i){
 		testCenter = cubes[i]->testMoveZ(factor);
@@ -104,41 +129,41 @@ bool Figure::testMoveZ(int factor, FixedCubes& fc)
 		iCellX = (testCenter[0] + shiftX)/cubeSize;
 		iPlane = (testCenter[1] + shiftY)/cubeSize;
 		iCellZ = (testCenter[2] + shiftZ)/cubeSize;
-		if( fc.isCellFilled(iCellX, iPlane, iCellZ) )
+		if( planes[iPlane]->isCellFilled(iCellX, iCellZ) )
 			return false;
 	}
 
 	return true;
 }
 
-void Figure::rotateX(FixedCubes& fc)
+void Figure::rotateX(pPlanes& planes)
 {
 	// Rotate only after ensuring that the figure will not leave the borders of the scene.
-	if( testRotateX(fc) ){
+	if( testRotateX(planes) ){
 		for(std::size_t i = 0; i < cubes.size(); ++i)
 			cubes[i]->rotateX(deltaAngleRad);
 	}
 }
 
-void Figure::rotateY(FixedCubes& fc)
+void Figure::rotateY(pPlanes& planes)
 {
 	// Rotate only after ensuring that the figure will not leave the borders of the scene.
-	if( testRotateY(fc) ){
+	if( testRotateY(planes) ){
 		for(std::size_t i = 0; i < cubes.size(); ++i)
 			cubes[i]->rotateY(deltaAngleRad);
 	}
 }
 
-void Figure::rotateZ(FixedCubes& fc)
+void Figure::rotateZ(pPlanes& planes)
 {
 	// Rotate only after ensuring that the figure will not leave the borders of the scene.
-	if( testRotateZ(fc) ){
+	if( testRotateZ(planes) ){
 		for(std::size_t i = 0; i < cubes.size(); ++i)
 			cubes[i]->rotateZ(deltaAngleRad);
 	}
 }
 
-bool Figure::testRotateX(FixedCubes& fc)
+bool Figure::testRotateX(pPlanes& planes)
 {
 	// For rotation around x-axis look at the z and y directions.
 	float n;
@@ -147,9 +172,6 @@ bool Figure::testRotateX(FixedCubes& fc)
 	float shiftX = 0.5*cubeSize*iNumOfCellsX;
 	float shiftY = 0.5*cubeSize*iNumOfPlanes;
 	float shiftZ = 0.5*cubeSize*iNumOfCellsZ;
-
-	//float shiftY = 0.5*cubeSize*iNumOfPlanes;
-	//float shiftZ = 0.5*cubeSize*iNumOfCellsZ;
 
 	for(std::size_t i = 0; i < cubes.size(); ++i){
 		testCenter = cubes[i]->testRotateX(deltaAngleRad);
@@ -166,14 +188,14 @@ bool Figure::testRotateX(FixedCubes& fc)
 		iCellX = (testCenter[0] + shiftX)/cubeSize;
 		iPlane = (testCenter[1] + shiftY)/cubeSize;
 		iCellZ = (testCenter[2] + shiftZ)/cubeSize;
-		if( fc.isCellFilled(iCellX, iPlane, iCellZ) )
+		if( planes[iPlane]->isCellFilled(iCellX, iCellZ) )
 			return false;
 	}
 
 	return true;
 }
 
-bool Figure::testRotateY(FixedCubes& fc)
+bool Figure::testRotateY(pPlanes& planes)
 {
 	// For rotation around y-axis look at the x- and z-directions;
 	float n;
@@ -182,9 +204,6 @@ bool Figure::testRotateY(FixedCubes& fc)
 	float shiftX = 0.5*cubeSize*iNumOfCellsX;
 	float shiftY = 0.5*cubeSize*iNumOfPlanes;
 	float shiftZ = 0.5*cubeSize*iNumOfCellsZ;
-
-	//float shiftX = 0.5*cubeSize*iNumOfCellsX;
-	//float shiftZ = 0.5*cubeSize*iNumOfCellsZ;
 
 	for(std::size_t i = 0; i < cubes.size(); ++i){
 		testCenter = cubes[i]->testRotateY(deltaAngleRad);
@@ -201,14 +220,14 @@ bool Figure::testRotateY(FixedCubes& fc)
 		iCellX = (testCenter[0] + shiftX)/cubeSize;
 		iPlane = (testCenter[1] + shiftY)/cubeSize;
 		iCellZ = (testCenter[2] + shiftZ)/cubeSize;
-		if( fc.isCellFilled(iCellX, iPlane, iCellZ) )
+		if( planes[iPlane]->isCellFilled(iCellX, iCellZ) )
 			return false;
 	}
 
 	return true;
 }
 
-bool Figure::testRotateZ(FixedCubes& fc)
+bool Figure::testRotateZ(pPlanes& planes)
 {
 	// For rotation around z-axis look at the x- and y-directions;
 	float n;
@@ -217,9 +236,6 @@ bool Figure::testRotateZ(FixedCubes& fc)
 	float shiftX = 0.5*cubeSize*iNumOfCellsX;
 	float shiftY = 0.5*cubeSize*iNumOfPlanes;
 	float shiftZ = 0.5*cubeSize*iNumOfCellsZ;
-
-	//float shiftX = 0.5*cubeSize*iNumOfCellsX;
-	//float shiftY = 0.5*cubeSize*iNumOfPlanes;
 
 	for(std::size_t i = 0; i < cubes.size(); ++i){
 		testCenter = cubes[i]->testRotateZ(deltaAngleRad);
@@ -236,7 +252,7 @@ bool Figure::testRotateZ(FixedCubes& fc)
 		iCellX = (testCenter[0] + shiftX)/cubeSize;
 		iPlane = (testCenter[1] + shiftY)/cubeSize;
 		iCellZ = (testCenter[2] + shiftZ)/cubeSize;
-		if( fc.isCellFilled(iCellX, iPlane, iCellZ) )
+		if( planes[iPlane]->isCellFilled(iCellX, iCellZ) )
 			return false;
 	}
 
@@ -251,9 +267,6 @@ void Figure::getCubeIndeces(std::vector<CellIndeces> &indeces)
 	float shiftZ = 0.5*cubeSize*iNumOfCellsZ;
 	vector_3d center;
 
-//#ifdef _DEBUG
-//	std:: cerr << "________________" << std::endl;
-//#endif
 	for(std::size_t i = 0; i < cubes.size(); ++i)
 		if(i < iIdSize )			// Treat only those cubes that fit the id array.
 		{
@@ -261,9 +274,6 @@ void Figure::getCubeIndeces(std::vector<CellIndeces> &indeces)
 			indeces[i].x = (center[0] + shiftX)/cubeSize;
 			indeces[i].plane = (center[1] + shiftY)/cubeSize;
 			indeces[i].z = (center[2] + shiftZ)/cubeSize;
-//#ifdef _DEBUG			
-//			std::cerr << i << " x = " << id[i].x << " y = " << id[i].plane << " z = " << id[i].z << std::endl;
-//#endif
 		}
 }
 

@@ -9,12 +9,11 @@
 
 //--------------------------------
 // Cell.
-// Containes the relevant info about the presence of a cube at a particular point in space.
+// Contains the relevant info about the presence of a cube at a particular point in space.
 // Also is used to draw a mesh on the boundary planes.
 class Cell
 {
 public:
-	//Cell(int xExt, int zExt, int plane, float cube);
 	Cell();
 	~Cell();
 
@@ -44,31 +43,32 @@ private:
 
 //--------------------------------
 // PlaneOfCells.
-// Manages cells in a vertical plane.
+// Manages cells in a plane parallel to the xz-plane.
 class PlaneOfCells
 {
 public:
 	PlaneOfCells(int id, int x, int z, float size);
 	~PlaneOfCells();
 
-	bool isPlaneFilled();		// True if all the cells in the plane contain a fixed cube.
-	bool isPlaneEmpty();
+	bool isFilled();				// True if all the cells in the plane contain a fixed cube.
+	bool isEmpty();
 	bool isCellFilled(int x, int z);// True if the cell[x*Nx + z] is filled.
 	void fillCell(int x, int z, int cubeId);// Mark the cell as containing a fixed cube.
-	void drawLeftPlane();
-	void drawBottomPlane();
-	void drawRightPlane();
+	void drawLeftFaces();
+	void drawBottomFaces();
+	void drawRightFaces();
 	void drawHighlightedBottomCells();
 
-	void setFilledCellToDraw(int x, int z);
-	void resetFilledCellToDraw(int x, int z);
-	void setBottomCellToDraw(int x, int z);
-	void resetBottomCellToDraw(int x, int z);
+	void setHighlightedLeftCell(int z);	// Indicate the cell to be highlighted.
+	void resetHighlightedLeftCell(int z);// Say that the cell shouldn't be highlighted.
+	void setHighlightedRightCell(int z);	// Indicate the cell to be highlighted.
+	void resetHighlightedRightCell(int z);// Say that the cell shouldn't be highlighted.
+	void setHighlightedCell(int x, int z); // Set any highlighted cell.
+	void resetHighlightedCell(int x, int z);// Reset any highlighted cell.
 
-	//void clear();	// Delete cubes and empty the corresponding cells.
-	int getCubeIndex(int x, int z);
-	const std::vector<Cell>& getCells();
-	void copyCells(const std::vector<Cell>& c);
+	int getCubeIndex(int x, int z);				// Return the index of a cube stored in the cell.
+	const std::vector<Cell>& getCells();		// Rerurn all the cells.
+	void copyCells(const std::vector<Cell>& c);	
 
 private:
 	void initCells();		// Set cube index in all the cells to -1.
@@ -79,7 +79,6 @@ private:
 	int iNumOfCellsZ;
 
 	float cubeSize;
-
 	std::vector<Cell> cell;	// Vector of cells in the plane.
 };
 
@@ -93,39 +92,15 @@ public:
 	~FixedCubes(void);
 
 	void draw();
-	void collide();
-	void setFilledCellToDraw(CellIndeces &id);
-	void resetFilledCellToDraw(CellIndeces &id);
-	void setBottomCellToDraw(CellIndeces &id);
-	void resetBottomCellToDraw(CellIndeces &id);
-
-	bool isCellFilled(int x, int planeId, int z);
-
-	void addCubes(Figure &f);
-	void fillCell(const CellIndeces &cellId, int cubeId);
-	void annihilateLayer();
+	void eraseCube(int cubeIndex);
+	void moveCubeY(int factor, int cubeIndex);
+	void insertCube(std::tr1::shared_ptr<Cube> c, int cubeId);
 
 private:
-	void createPlanes();
-	//void annihilateLayer();
-
-private:
-	int iNumOfCubes;				// Current number of cubes.
-	int iNumOfPlanes;
-	int iNumOfCellsX;
-	int iNumOfCellsZ;
-
-	//int iFiguresPerCube;	// Add this to the constructor.
-
-	float cubeSize;
-	int bottomPlane;
-	int secondBottomPlane;
-
-	std::vector<std::tr1::shared_ptr<PlaneOfCells> > plane;	// Vector of planes containing cells.
-
-	//std::vector<std::tr1::shared_ptr<Cube> > cubes;	// Pointers to the fixed cubes.
-	std::map<std::size_t, std::tr1::shared_ptr<Cube> > cubes;
 	typedef std::map<std::size_t, std::tr1::shared_ptr<Cube>  >::iterator map_iter;
+	int iNumOfCubes;				// Current number of cubes.
+	float cubeSize;
+	std::map<std::size_t, std::tr1::shared_ptr<Cube> > cubes;
 };
 
 #endif	// end FIXED_CUBES_H

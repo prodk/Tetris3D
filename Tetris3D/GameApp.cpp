@@ -9,7 +9,7 @@ flScreenWidth(1024), flScreenHeight(640), strGameName("Tetris 3D"),
 	//Logic(start, options, howto, play, run, pause, over, bsound, asound);
 	logic(false, false, false, true, true, false, false, false, true, 
 	flScreenWidth, flScreenHeight),
-	iNumOfSounds(5), iNumOfFonts(1), iNumOfTextures(5)
+	iNumOfSounds(5), iNumOfFonts(1), iNumOfTextures(5)// Button texture isn't counted here.
 {
 	// Exceptions and bad values are caught/checked inside the functions and printed to stderr.
 	initLibraries();
@@ -21,7 +21,7 @@ flScreenWidth(1024), flScreenHeight(640), strGameName("Tetris 3D"),
 
 GameApp::~GameApp(void)
 {
-	shutDown();			// Shapes are handled via smart pointers, so no delete[] here.	
+	shutDown();			// Most objects are handled via smart pointers, so no delete[] here.	
 }
 
 int GameApp::initLibraries()
@@ -84,33 +84,23 @@ void GameApp::loadSounds()
 	result = system->createStream("../data/audio/round1.mp3", FMOD_LOOP_NORMAL, 0, &sounds[1]);
 	checkErr(result, std::string("../data/audio/round1.mp3"));
 
-	result = system->createStream("../data/audio/annihilate.mp3", FMOD_LOOP_NORMAL, 0, &sounds[2]);
+	result = system->createStream("../data/audio/annihilate.mp3", FMOD_DEFAULT, 0, &sounds[2]);
 	checkErr(result, std::string("../data/audio/annihilate.mp3"));
 
-	result = system->createStream("../data/audio/collide.mp3", FMOD_LOOP_NORMAL, 0, &sounds[3]);
+	result = system->createStream("../data/audio/collide.mp3", FMOD_DEFAULT, 0, &sounds[3]);
 	checkErr(result, std::string("../data/audio/collide.mp3"));
 
 	result = system->createStream("../data/audio/rotate.mp3", FMOD_DEFAULT, 0, &sounds[4]);
 	checkErr(result, std::string("../data/audio/rotate.mp3"));
 
-	/*result = system->createStream("../data/audio/absorbwall.wav", FMOD_DEFAULT, 0, &sounds[5]);
-	checkErr(result, std::string("../data/audio/absorbwall.wav"));
-
-	result = system->createStream("../data/audio/paddle.mp3", FMOD_DEFAULT, 0, &sounds[6]);
-	checkErr(result, std::string("../data/audio/paddle.mp3"));*/
-
 	// Start paused sounds.
-	channelRound.resize(3);
+	channelRound.resize(1);		// Only one sound for rounds.
 	// Options.
 	if( (sounds[0] != NULL) && (system != NULL) )
 		result = system->playSound(sounds[0], 0, true, &channelOptions);
 	// Rounds sound.
 	if( (sounds[1] != NULL) && (system != NULL) )
 		result = system->playSound(sounds[1], 0, true, &channelRound[0]);
-	if( (sounds[2] != NULL) && (system != NULL) )
-		result = system->playSound(sounds[2], 0, true, &channelRound[1]);
-	if( (sounds[3] != NULL) && (system != NULL) )
-		result = system->playSound(sounds[3], 0, true, &channelRound[2]);
 }
 
 void GameApp::loadFonts()
@@ -136,8 +126,6 @@ void GameApp::loadData()
 	textures[OPTIONS_SCREEN] = loadTexture("../data/textures/options.png");
 	textures[HOWTO_SCREEN] = loadTexture("../data/textures/howto.png");
 	textures[PLAY_SCREEN] = loadTexture("../data/textures/round1.png");
-	//textures[PLAY_SCREEN+1] = loadTexture("../data/textures/round2.png");
-	//textures[PLAY_SCREEN+2] = loadTexture("../data/textures/round3.png");
 
 	// Load sounds and fonts.
 	loadSounds();
@@ -440,18 +428,7 @@ void GameApp::setupRoundParams()
 	// Specify different values of the parameters for each round.
 	for(std::size_t i = 0; i < nRounds; i++){
 		RoundParameters *pParams =
-			new RoundParameters(
-			// Decrease the box width as the round increases.
-			flBoxWidth*(1. - 0.5/(double)(nRounds - i + 1.)),
-			flBoxHeight, 
-			// Increase the initial velocity of the ball as the round increases.
-			flBallVel*(1. + 0.65/(double)(nRounds - i + 1.)),
-			0.02*(1. + i),	// Increase the reflection velocity with the round.
-			// Make computer paddle faster with the round.
-			flCompPaddleVel*(1. + 3.1/(double)(nRounds - i + 1.)), 
-			// Make paddle radius smaller for higher rounds.
-			0.07*flBoxWidth*(1. - 0.5/(double)(nRounds - i + 1.)) 
-			);
+			new RoundParameters(flBoxWidth, flBoxHeight);
 		roundParams[i] = std::tr1::shared_ptr<RoundParameters>(pParams);
 	}
 }

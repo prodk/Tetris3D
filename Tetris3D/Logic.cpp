@@ -10,12 +10,11 @@ Logic::Logic(bool startscreen , bool options, bool howto, bool play,
 	bAppRunning(run), bGamePaused(pause), bGameOver(over),
 	bBackgroundSound(bsound), bActionsSound(asound),
 	flScreenWidth(scrw), flScreenHeight(scrh), 
-	iRoundMax(9), iMaxScore(5)		// Constants.
+	iRoundMax(1), iMaxScore(5)		// Constants.
 {
 	bTrain = false;
 	iRound = 1;
 	iUserScore = 0;
-	iCompScore = 0;
 	bNewRound = true;
 	bNewOptionsScreen = false;
 	bRotated = false;
@@ -29,9 +28,8 @@ Logic::~Logic(void)
 
 /*______________*/
 // RoundParameters implementation.
-RoundParameters::RoundParameters(float w, float h, float bv, float bdv, float pv, float pr):
-	flBoxWidth(w), flBoxHeight(h), flBallVelocity(bv), flBallDeltaVel(bdv),
-	flComputerPaddleVel(pv), flPaddleRadius(pr)
+RoundParameters::RoundParameters(float w, float h):
+	flBoxWidth(w), flBoxHeight(h)
 {
 }
 

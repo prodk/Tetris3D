@@ -24,18 +24,17 @@ public:
 	vector_3d testRotateZ(float angle);
 
 	void moveX(int factor);
-	void moveY();				// Fall.
+	void moveY(int factor);				// Fall.
 	void moveZ(int factor);
 
 	// Emulate the movement of the cube to check the boundaries.
 	vector_3d testMoveX(int factor);
+	vector_3d testMoveY(int factor);
 	vector_3d testMoveZ(int factor);
 
 	void setOrigin(vector_3d vO);
 
 	const vector_3d& getCenter();
-
-	//void getCellIndeces(int *x, int *plane, int *z);	// Indeces of the cell where cube is located.
 
 protected:
 	vector_3d vOrigin;	// The origin of the coordinate system.

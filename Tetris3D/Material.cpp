@@ -4,8 +4,8 @@
 
 // Default constructor.
 Material::Material(void) : 
-	colorAmbient(0.0, 0.5, 1.0), colorDiffuse(0.0, 0.5, 0.0), colorSpecular(0.0, 0.5, 0.0),
-	flShininess(0.0), flAlpha(1.0)
+	colorAmbient(0.0, 0.5, 0.5), colorDiffuse(0.0, 0.5, 0.0), colorSpecular(0.0, 0.5, 0.5),
+	flShininess(1.0), flAlpha(1.0)
 {
 	setValues();
 }
