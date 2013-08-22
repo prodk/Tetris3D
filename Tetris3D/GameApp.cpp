@@ -7,7 +7,7 @@ GameApp::GameApp(void) :
 flScreenWidth(1024), flScreenHeight(640), strGameName("Tetris 3D"), 
 	bBackgroundSound(true),
 	//Logic(start, options, howto, play, run, pause, over, bsound, asound);
-	logic(false, false, false, true, true, false, false, false, true, 
+	logic(true, false, false, false, true, false, false, true, true, 
 	flScreenWidth, flScreenHeight),
 	iNumOfSounds(5), iNumOfFonts(1), iNumOfTextures(5)// Button texture isn't counted here.
 {

@@ -194,7 +194,7 @@ private:
 
 	void manageCellsFilling();				// Specify which cells should be drawn as filled.
 	void checkCollision(Logic &logic);		// Figure collision with the fixed cubes.
-	void annihilateLayers();				// Remove completely filled planes of cubes.
+	void annihilateLayers(Logic &logic);				// Remove completely filled planes of cubes.
 	std::tr1::shared_ptr<Figure> createNewFigure();
 
 	// Private members.
@@ -229,7 +229,7 @@ private:
 	// Make the figure to fall down. Necessary to provide a normal tetris 
 	// behavior - move laterally after falling down.
 	void dropFigure(Logic& logic);	
-	bool isRoundFinished();	// Returns true if the figure touches the highest filled plane.
+	bool isRoundFinished(Logic& logic);	// Returns true if the figure touches the highest filled plane.
 	std::vector<std::tr1::shared_ptr<PlaneOfCells> > plane;	// Vector of planes containing cells.
 	// End data/methods from FixedCube.
 
@@ -270,7 +270,8 @@ private:
 	int iNumOfStringTextures;
 	// Enum hack - contains all the symbols we want to render on the scene.	
 	enum{ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE,
-		R, C, U, YOU_LOST, COMP_LOST};
+		TEN, ELEVEN, TWELVE, THIRTEEN, FOURTEEN, FIFTEEN,
+		LAYERS, NEXT_FIGURE, YOU_LOST, YOU_WON};
 	// String texture array created in constructor for optimized string output.
 	std::vector<std::tr1::shared_ptr<TEXTURE> > stringTextures;
 	void loadStringTextures();

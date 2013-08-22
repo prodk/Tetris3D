@@ -306,6 +306,14 @@ void ButtonScreen::processButton(std::size_t id, Logic & logic)
 		logic.notifyObservers();// Tell registered observers to change their settings.
 		break;
 
+	case ROUND_BTN:				// Change the round.
+		logic.iSystemSize = logic.iSystemSize % logic.iSystemSizeMax + 2;
+		if(logic.iSystemSize < 3)
+			logic.iSystemSize = 4;
+		((OptionsButton*)guiObjects[id].get())->setCaption(std::to_string((_ULonglong)logic.iSystemSize));
+		logic.notifyObservers(); 
+		break;
+
 	case BACK_BTN:
 		logic.bShowOptionsScreen = false;
 		logic.bShowStartScreen = true;
@@ -337,13 +345,13 @@ void ButtonScreen::doDrawing(Logic &logic)
 		iterator->second->draw(fonts[0]);
 
 	// Draw text at the top of the screen.
-	std::string txt = "Ping Pong 3D";
+	std::string txt = "Tetris 3D";
 	SDL_Color textColor;
 	textColor.b = textColor.g = textColor.r = 0.;
-	drawText(txt, -0.2, 0.8, 0.4, 0.15, fonts[0], logic, textColor);
+	drawText(txt, -0.92, 0.7, 0.5, 0.23, fonts[0], logic, textColor);
 
-	txt = "(c) Nikolay Prodanov, 2013. All rights reserved.";
-	drawText(txt, -0.5, 0.6, 1., 0.11, fonts[0], logic, textColor);
+	txt = "(c) Nikolay Prodanov, 2013.";
+	drawText(txt, -0.915, 0.64, 0.5, 0.08, fonts[0], logic, textColor);
 
 	glDisable( GL_TEXTURE_2D );
 	glFlush();
@@ -604,6 +612,14 @@ void OptionsScreen::addButtons(Logic &logic)
 
 		// Button 2.
 		y -= 1.5*h;
+		name = "Lateral Size";
+		caption = std::to_string((_ULonglong)logic.iSystemSize);
+		pGuiObj = new OptionsButton(x, y, w, h, 
+			ROUND_BTN, name, textures[0]->id, caption);	// The same texture id.
+		guiObjects.insert(std::make_pair(ROUND_BTN, std::tr1::shared_ptr<GuiObject>(pGuiObj)));
+
+		// Button 3.
+		y -= 1.5*h;
 		name = "Back";
 		pGuiObj = new Button(x, y, w, h, BACK_BTN, name, textures[0]->id);	// The same texture id.
 		guiObjects.insert(std::make_pair(BACK_BTN, std::tr1::shared_ptr<GuiObject>(pGuiObj)));
@@ -650,15 +666,15 @@ void HowtoScreen::doDrawing(Logic &logic)
 	textColor.b = 0.;
 	// 'magic numbers'.
 	std::string txt = "Keys (click or space to exit from here)";
-	drawText(txt, -0.55, 0.75, 1.1, 0.15, fonts[0], logic, textColor);
+	drawText(txt, -0.55, 0.78, 1.1, 0.15, fonts[0], logic, textColor);
 	txt = "_______________________________________";
-	drawText(txt, -0.55, 0.73, 1.1, 0.15, fonts[0], logic, textColor);
+	drawText(txt, -0.55, 0.76, 1.1, 0.15, fonts[0], logic, textColor);
 
 	// 'magic numbers' are below.
-	float y = 0.55;
+	float y = 0.58;
 	float h = 0.15;
-	float txtX = -0.8;
-	float fixedX = 0.3;
+	float txtX = -0.92;
+	float fixedX = 0.25;
 	// Keys.
 	txt = "Action";
 	drawText(txt, txtX, y, 0.2, h, fonts[0], logic, textColor);
@@ -673,11 +689,11 @@ void HowtoScreen::doDrawing(Logic &logic)
 	txt = "____________";
 	drawText(txt, fixedX, y, 0.42, h, fonts[0], logic, textColor);	
 
-	y -= 1.5*h;
+	y -= 1.3*h;
 	txt = "go back to the start screen:";
-	drawText(txt, txtX, y, 0.8, h, fonts[0], logic, textColor);
+	drawText(txt, txtX, y, 0.77, h, fonts[0], logic, textColor);
 	txt = "b";
-	drawText(txt, fixedX, y, 0.045, h, fonts[0], logic, textColor);
+	drawText(txt, fixedX, y, 0.043, h, fonts[0], logic, textColor);
 
 	SDL_Delay(20);		// Delay to diminish processor load.
 
@@ -688,35 +704,41 @@ void HowtoScreen::doDrawing(Logic &logic)
 	drawText(txt, fixedX, y, 0.23, h, fonts[0], logic, textColor);
 
 	y -= 1.3*h;
-	txt = "paddle manipulation:";
-	drawText(txt, txtX, y, 0.65, h, fonts[0], logic, textColor);
-	txt = "arrows/asdw/mouse";
-	drawText(txt, fixedX, y, 0.57, h, fonts[0], logic, textColor);
+	txt = "rotate figure around x(red)/y/z(blue) axes:";
+	drawText(txt, txtX, y, 1.14, h, fonts[0], logic, textColor);
+	txt = "d/s/a";
+	drawText(txt, fixedX, y, 0.16, h, fonts[0], logic, textColor);
+
+	y -= 1.3*h;
+	txt = "move figure along x,y,z axes:";
+	drawText(txt, txtX, y, 0.85, h, fonts[0], logic, textColor);
+	txt = "l/r arrow, shift, b/u arrow";
+	drawText(txt, fixedX, y, 0.7, h, fonts[0], logic, textColor);
 
 	SDL_Delay(20);		// Delay to diminish processor load.
 
 	y -= 1.3*h;
 	txt = "reset view to the initial position:";
-	drawText(txt, txtX, y, 1.0, h, fonts[0], logic, textColor);
+	drawText(txt, txtX, y, 1., h, fonts[0], logic, textColor);
 	txt = "=";
 	drawText(txt, fixedX, y, 0.05, h, fonts[0], logic, textColor);
 
 	y -= 1.3*h;
 	txt = "zoom:";
-	drawText(txt, txtX, y, 0.2, h, fonts[0], logic, textColor);
+	drawText(txt, txtX, y, 0.18, h, fonts[0], logic, textColor);
 	txt = "m/p";
-	drawText(txt, fixedX, y, 0.12, h, fonts[0], logic, textColor);
+	drawText(txt, fixedX, y, 0.11, h, fonts[0], logic, textColor);
 
 	SDL_Delay(20);		// Delay to diminish processor load.
 
 	y -= 1.3*h;
-	txt = "rotate around y/z axes:";
-	drawText(txt, txtX, y, 0.67, h, fonts[0], logic, textColor);
+	txt = "rotate view around x,y/z axes:";
+	drawText(txt, txtX, y, 0.9, h, fonts[0], logic, textColor);
 	txt = "mouse(left)/wheel";
 	drawText(txt, fixedX, y, 0.51, h, fonts[0], logic, textColor);
 	
 	txt = "(c) Nikolay Prodanov, 2013. All rights reserved.";
-	drawText(txt, -0.5, -0.92, 1., 0.11, fonts[0], logic, textColor);
+	drawText(txt, -0.5, -0.96, 1., 0.11, fonts[0], logic, textColor);
 
 	SDL_Delay(20);		// Delay to diminish processor load.
 
@@ -761,7 +783,7 @@ PlayScreen::PlayScreen(int idExt, float w, float h, SDL_Surface* s, TEXTURE_PTR_
 	 SdlScreen(idExt, w, h, s, t, fnt, sys, snd), roundParams(rp)
 {
 	iShowMessageCount = 0;
-	iMaxShowMessageCount = 100;
+	iMaxShowMessageCount = 200;
 	flDeltaAngleViewZ = 3.;
 	flDeltaScale = 0.01;
 	flDeltaPaddle = 0.01;
@@ -785,9 +807,9 @@ void PlayScreen::initMembers(const Logic &logic)
 	// 'magic numbers'.
 	// Use 8 cubes in the lateral direction instead of 10 (as in 2D Tetris).
 	// This accelerates building.
-	iNumOfPlanes = 8;//10;
-	iNumOfCellsX = 4;//8;
-	iNumOfCellsZ = 4;//8;
+	iNumOfPlanes = 12;
+	iNumOfCellsX = logic.iSystemSize;// 4;
+	iNumOfCellsZ = logic.iSystemSize;//4;
 	cubeSize = 1.;
 
 	// From FixedCubes.
@@ -807,6 +829,7 @@ void PlayScreen::initMembers(const Logic &logic)
 
 	// Moving speed.
 	iFrameDelayMove = 200;					// Moving speed.
+	bKeyDown = false;
 	
 	// Round info is not important, we have only one round.
 	iCurRound = logic.iRound - 1;
@@ -848,11 +871,8 @@ void PlayScreen::doInput(Logic &logic, SDL_Event sdlEvent)
 			handleMouseMotion(sdlEvent, logic);
 		break;
 	
-	case SDL_KEYDOWN:
-		if(!bKeyDown){			// Prevent from multiple events.
-			bKeyDown = true;
-			handleKeyDown(sdlEvent, logic);		
-		}
+	case SDL_KEYDOWN:		
+		handleKeyDown(sdlEvent, logic);			
 		break;
 
 	case SDL_KEYUP:
@@ -968,6 +988,7 @@ void PlayScreen::handleKeyDown(const SDL_Event& sdle, Logic &logic)
 	case SDLK_EQUALS:					// Reset view.
 		angleViewY = angleViewYMax;
 		angleViewZ = 0.;
+		angleViewX = 10.;
 		flScaleAll = 1.;
 		break;
 
@@ -1002,12 +1023,13 @@ void PlayScreen::handleKeyDown(const SDL_Event& sdle, Logic &logic)
 
 	case SDLK_ESCAPE:// Quit.
 		logic.bAppRunning = false;
-		break;	
+		break;		
 
 		// Rotation.
 		// xy-plane, z-axis.
 	case SDLK_a:
-		if(bKeyDown){
+		if(!bKeyDown){			// Prevent from processing multiple times at one pressing.
+			bKeyDown = true;
 			currentFigure->rotateZ( plane );
 			if(bPlaySound)
 				::playSound(system, sounds[4], channel);
@@ -1016,7 +1038,8 @@ void PlayScreen::handleKeyDown(const SDL_Event& sdle, Logic &logic)
 
 		// xz-plane, y-axis.
 	case SDLK_s:
-		if(bKeyDown){
+		if(!bKeyDown){			// Prevent from processing multiple times at one pressing.
+			bKeyDown = true;
 			currentFigure->rotateY( plane );
 			if(bPlaySound)
 				::playSound(system, sounds[4], channel);
@@ -1024,7 +1047,8 @@ void PlayScreen::handleKeyDown(const SDL_Event& sdle, Logic &logic)
 		break;
 
 	case SDLK_d:
-		if(bKeyDown){
+		if(!bKeyDown){			// Prevent from processing multiple times at one pressing.
+			bKeyDown = true;
 			currentFigure->rotateX( plane );
 			if(bPlaySound)
 				::playSound(system, sounds[4], channel);
@@ -1033,35 +1057,40 @@ void PlayScreen::handleKeyDown(const SDL_Event& sdle, Logic &logic)
 
 	case SDLK_RSHIFT:			// Accelerate the vertical movement of the figure.
 	case SDLK_LSHIFT:			// Fall through.
-		{
+		if(!bKeyDown){			// Prevent from processing multiple times at one pressing.
+			bKeyDown = true;
 			int factor = -1;
 			currentFigure->moveY(factor, plane);
 		}
 		break;
 
 	case SDLK_LEFT:
-		{
+		if(!bKeyDown){			// Prevent from processing multiple times at one pressing.
+			bKeyDown = true;
 			int factor = -1;
 			currentFigure->moveX(factor, plane);
 		}
 		break;
 
 	case SDLK_RIGHT:
-		{
+		if(!bKeyDown){			// Prevent from processing multiple times at one pressing.
+			bKeyDown = true;
 			int factor = 1;
 			currentFigure->moveX(factor, plane);
 		}
 		break;
 
 	case SDLK_UP:
-		{
+		if(!bKeyDown){			// Prevent from processing multiple times at one pressing.
+			bKeyDown = true;
 			int factor = -1;
 			currentFigure->moveZ(factor, plane);
 		}
 		break;
 
 	case SDLK_DOWN:
-		{
+		if(!bKeyDown){			// Prevent from processing multiple times at one pressing.
+			bKeyDown = true;
 			int factor = 1;
 			currentFigure->moveZ(factor, plane);
 		}
@@ -1153,7 +1182,7 @@ void PlayScreen::play(Logic &logic, SDL_Event sdlEvent)
 		currentFigure = nextFigure;		// Make the next figure to be the current figure.
 		nextFigure = createNewFigure();	// Create the next new figure.
 
-		logic.bRoundFinished = isRoundFinished();
+		logic.bRoundFinished = isRoundFinished(logic);
 	}
 
 	// Draw the scene.
@@ -1278,13 +1307,13 @@ void PlayScreen::drawStringTexture(int symbolIdx, float x, float y, float z,
 // Create textures for all the strings that are going to be rendered onto the scene.
 void PlayScreen::loadStringTextures()
 {
-	iNumOfStringTextures = 15;
+	iNumOfStringTextures = 20;
 	SDL_Color textColor;
 	textColor.r = 0;
 	textColor.g = 0.;
 	textColor.b = 1.;
 	stringTextures.resize(iNumOfStringTextures);
-
+	
 	stringTextures[ZERO] = createStringTexture(std::string("0"), fonts[0], textColor);
 	stringTextures[ONE] = createStringTexture(std::string("1"), fonts[0], textColor);
 	stringTextures[TWO] = createStringTexture(std::string("2"), fonts[0], textColor);
@@ -1295,51 +1324,51 @@ void PlayScreen::loadStringTextures()
 	stringTextures[SEVEN] = createStringTexture(std::string("7"), fonts[0], textColor);
 	stringTextures[EIGHT] = createStringTexture(std::string("8"), fonts[0], textColor);
 	stringTextures[NINE] = createStringTexture(std::string("9"), fonts[0], textColor);
-	stringTextures[R] = createStringTexture(std::string("R:"), fonts[0], textColor);
-	stringTextures[C] = createStringTexture(std::string("C:"), fonts[0], textColor);
-	stringTextures[U] = createStringTexture(std::string("U:"), fonts[0], textColor);
+	stringTextures[TEN] = createStringTexture(std::string("10"), fonts[0], textColor);
+	stringTextures[ELEVEN] = createStringTexture(std::string("11"), fonts[0], textColor);
+	stringTextures[TWELVE] = createStringTexture(std::string("12"), fonts[0], textColor);
+	stringTextures[THIRTEEN] = createStringTexture(std::string("13"), fonts[0], textColor);
+	stringTextures[FOURTEEN] = createStringTexture(std::string("14"), fonts[0], textColor);
+	stringTextures[FIFTEEN] = createStringTexture(std::string("15"), fonts[0], textColor);
+	
+	stringTextures[LAYERS] = createStringTexture(std::string("Layers:"), fonts[0], textColor);
+	stringTextures[NEXT_FIGURE] = createStringTexture(std::string("Next Figure:"), fonts[0], textColor);
 	stringTextures[YOU_LOST] = createStringTexture(std::string("You lost!"), fonts[0], textColor);
-	stringTextures[COMP_LOST] = createStringTexture(std::string("Comp lost!"), fonts[0], textColor);
+	stringTextures[YOU_WON] = createStringTexture(std::string("You won!"), fonts[0], textColor);
 }
 
 void PlayScreen::drawScoreAndRoundOptimized(Logic &logic)
 {
-	float txtW = 0.07;
-	float txtH = 0.11;
-	float x0 = -0.42;//*flBoxThickness;
-	float y0 = -0.5*flBoxHeight;
+	float txtW = 0.7;
+	float txtH = 1.1;
+	float wordW = 5.5*txtW;
+	float x0 = -cubeSize*(0.5*iNumOfCellsX + 5.5*txtW + 3);
+	float y0 = 0.4*cubeSize*iNumOfPlanes;
 	float x, y;
 	float z = 0.;
-	float angleY = -90.;
+	float angleY = 0.;
 
 	glPushMatrix();
 	glRotatef(angleY, 0.0f, 1.0f, 0.0f);	// Rotate all the string by the same amount.
 
-	// Round.
-	drawStringTexture(R, x0, y0, z, txtW, txtH, 0.);
-	x = x0 + txtW;
-	y = y0;
-	drawStringTexture(logic.iRound, x, y, z, txtW, txtH, 0.);
-	// Comp's score.
-	x += 1.15*txtW;
-	drawStringTexture(C, x, y, z, txtW, txtH, 0.);
-	//x += 1*txtW;
-	//drawStringTexture(logic.iCompScore, x, y, z, txtW, txtH, 0.);
+	// Annihilated layers.
+	drawStringTexture(LAYERS, x0, y0, z, 5.*txtW, txtH, 0.);
+	if(logic.iUserScore <= FIFTEEN){	// Ensure the secure bounds of the vector.
+		x = x0 + 5.5*txtW;
+		y = y0;
+		drawStringTexture(logic.iUserScore, x, y, z, txtW, txtH, 0.);
+	}
 
-	// User's score.
-	x += 1.15*txtW;
-	drawStringTexture(U, x, y, z, txtW, txtH, 0.);
-	x += 1*txtW;
-	drawStringTexture(logic.iUserScore, x, y, z, txtW, txtH, 0.);
-
-	// End message: who has lost.
-	if(logic.bRoundFinished){
-		glTranslatef(0., 0., 0.45*flBoxWidth);	// Move the msg to the edge of the box (close to the camera).
-
-		if(logic.bGameOver)
-			drawStringTexture(YOU_LOST, 0.9*x0, y, z, 5.5*txtW, 0.8*txtH, 0.);
+	// Next figure or won/lost.
+	x = x0;
+	y = y0 - 1.5*txtH;	
+	if(!logic.bRoundFinished)
+		drawStringTexture(NEXT_FIGURE, x, y, z, 8.*txtW, txtH, 0.);	
+	else{
+		if(logic.iUserScore < logic.iMaxScore)
+			drawStringTexture(YOU_LOST, x, y, z, 6.*txtW, 1.4*txtH, 0.);
 		else
-			drawStringTexture(COMP_LOST, 0.9*x0, y, z, 5.5*txtW, 0.8*txtH, 0.);				
+			drawStringTexture(YOU_WON, x, y, z, 6.*txtW, 1.4*txtH, 0.);
 	}
 
 	glPopMatrix();
@@ -1348,7 +1377,7 @@ void PlayScreen::drawScoreAndRoundOptimized(Logic &logic)
 void PlayScreen::manageCellsFilling()
 {
 	previousCells = currentCells;	// Save currently highlighted cells to the previous cells.
-	currentFigure->getCubeIndeces(currentCells);// Define what cells should be highlighted
+	currentFigure->getCubeIndeces(currentCells);// Define what cells should be highlighted.
 
 	// Find the smallest index of the plane currently filled with the Figure's cube.
 	iLowestCurrentPlane = currentCells[0].plane;
@@ -1370,42 +1399,43 @@ void PlayScreen::checkCollision(Logic &logic)
 
 	// Loop over the planes that are below the currently filled cells.
 	for(i = 0; i < currentCells.size(); ++i){
-		iPlaneBelow = iLowestCurrentPlane - 1;
+		iPlaneBelow = currentCells[i].plane - 1;// Get the plane under the current cell.
 		// If collision occurred.
-		if(currentCells[i].plane == iLowestCurrentPlane){
-			if( (iPlaneBelow < 0) || 
-				( plane[iPlaneBelow]->isCellFilled(currentCells[i].x, currentCells[i].z) )
-			  )
-			{
-				// Make collision sound.
-				if(bPlaySound)
-					::playSound(system, sounds[3], channel);
+		if( (iPlaneBelow < 0) || 
+			( (iPlaneBelow >= 0) && (iPlaneBelow < iNumOfPlanes) &&
+			plane[iPlaneBelow]->isCellFilled(currentCells[i].x, currentCells[i].z) )
+			)
+		{
+			// Make collision sound.
+			if(bPlaySound)
+				::playSound(system, sounds[3], channel);
 
-				// Add fixed cubes and fill in the corresponding cells.
-				addCubes();
+			// Add fixed cubes and fill in the corresponding cells.
+			addCubes();
 
-				// Delete the figure.
-				currentFigure.reset();
-				// Set the flag that says that there is a need for the new figure. 
-				logic.bNewFigure = true;
-				// Reset the current highlighted cells to not to show them for the deleted figure.
-				resetHighlightedCells(currentCells);			
+			// Delete the figure.
+			currentFigure.reset();
+			// Set the flag that says that there is a need for the new figure. 
+			logic.bNewFigure = true;
+			// Reset the current highlighted cells to not to show them for the deleted figure.
+			resetHighlightedCells(currentCells);			
 
-				break;
-			}
-		}// End if the curren plane is the lowest one.
+			break;
+		}
 	}// End for i.
 
-	annihilateLayers();				// Remove completely filled planes of cubes.
+	annihilateLayers(logic);				// Remove completely filled planes of cubes.
 }
 
-void PlayScreen::annihilateLayers()
+void PlayScreen::annihilateLayers(Logic& logic)
 {
 	int index;
 	int emptyValue = -1;
 	std::size_t i = 0;
 	while(i < plane.size()){
 		if( plane[i]->isFilled() ){
+			// Increase the score - the number of planes annihilated so far.
+			++logic.iUserScore;
 			// Annihilate the plane.
 			// Get indeces of the cubes in this plane and delete these cubes.
 			for(int ix = 0; ix < iNumOfCellsX; ix++){
@@ -1418,6 +1448,8 @@ void PlayScreen::annihilateLayers()
 					plane[i]->fillCell(ix, iz, emptyValue);
 					// Reset all the highlighted cubes in the bottommost plane.
 					plane[0]->resetHighlightedCell(ix, iz);
+					if(bPlaySound)
+						::playSound(system, sounds[2], channel);
 #ifdef _DEBUG
 					std::cerr << "Plane " << i << " has been annihilated." << std::endl;
 #endif
@@ -1443,7 +1475,7 @@ label:
 			// This involves 2 steps:
 			// 1) copy the content of the cells of the upper plane to the current one.
 			// 2) shift the corresponding cubes; 			
-			for(int j = i; j < emptyPlaneIndex; ++j){
+			for(int j = i; j < (int)emptyPlaneIndex; ++j){
 				if( (j+1) < iNumOfPlanes )
 					plane[j]->copyCells( plane[j+1]->getCells() );// 1) copy cells of the upper plane to the current one.
 #ifdef _DEBUG
@@ -1534,7 +1566,7 @@ void PlayScreen::drawPlanes()
 		plane[i]->drawRightFaces();
 	}
 
-	if(bottomPlane >= 0)
+	if( (bottomPlane >= 0) && (bottomPlane < iNumOfPlanes) )
 		plane[bottomPlane]->drawBottomFaces();
 	if( (secondBottomPlane >= 0) && (secondBottomPlane < iNumOfPlanes) )
 		plane[secondBottomPlane]->drawHighlightedBottomCells();
@@ -1554,8 +1586,12 @@ void PlayScreen::addCubes()
 	// Loop over cubes, add them to the fixed cubes and fill in the corresponding cells.
 	for(std::size_t cellId = 0; cellId < ci.size(); cellId++){
 		int cubeId = c[cellId]->getId();
-		fixedCubes->insertCube(c[cellId], cubeId);
-		plane[ci[cellId].plane]->fillCell(ci[cellId].x, ci[cellId].z, cubeId);
+
+		if( cubeId >= 0)
+			fixedCubes->insertCube(c[cellId], cubeId);
+
+		if( (ci[cellId].plane >= 0) && (ci[cellId].plane < iNumOfPlanes) )
+			plane[ci[cellId].plane]->fillCell(ci[cellId].x, ci[cellId].z, cubeId);
 	}
 
 	// Find the topmost nonempty plane.
@@ -1568,6 +1604,7 @@ int PlayScreen::getTopEmptyPlane(int iStart, int iEnd)
 {
 	int i;
 	for(i = iStart; i < iEnd; ++i)
+		if( (iStart >= 0) && (iEnd <= iNumOfPlanes) )
 		if( plane[i]->isEmpty() )
 			return i;		
 
@@ -1580,7 +1617,7 @@ void PlayScreen::setHighlightedCells(std::vector<CellIndeces>& cells)
 	std::size_t i;
 
 	for(i = 0; i < currentCells.size(); ++i)
-		if(cells[i].plane >= 0){
+		if( (cells[i].plane >= 0) && (cells[i].plane < iNumOfPlanes) ){
 			p = cells[i].plane;
 			x = cells[i].x;
 			z = cells[i].z;
@@ -1589,9 +1626,11 @@ void PlayScreen::setHighlightedCells(std::vector<CellIndeces>& cells)
 				plane[p]->setHighlightedLeftCell(z);
 				plane[p]->setHighlightedRightCell(z);
 				plane[p]->setHighlightedCell(x, z);
-				// Reset the bottom plane.
-				plane[bottomPlane]->setHighlightedCell(x, z);
-				plane[secondBottomPlane]->setHighlightedCell(x, z);
+				// Reset the bottom planes.
+				if( (bottomPlane >= 0) && (bottomPlane < iNumOfPlanes) )
+					plane[bottomPlane]->setHighlightedCell(x, z);
+				if( (secondBottomPlane >= 0) && (secondBottomPlane < iNumOfPlanes) )
+					plane[secondBottomPlane]->setHighlightedCell(x, z);
 			}
 		}
 }
@@ -1602,7 +1641,7 @@ void PlayScreen::resetHighlightedCells(std::vector<CellIndeces>& cells)
 	std::size_t i;
 
 	for(i = 0; i < cells.size(); ++i)
-		if(cells[i].plane >= 0){
+		if( (cells[i].plane >= 0) && (cells[i].plane < iNumOfPlanes) ){
 			p = cells[i].plane;
 			x = cells[i].x;
 			z = cells[i].z;
@@ -1612,8 +1651,10 @@ void PlayScreen::resetHighlightedCells(std::vector<CellIndeces>& cells)
 				  plane[p]->resetHighlightedRightCell(z);
 				  plane[p]->resetHighlightedCell(x, z);
 				  // Reset the bottom plane.
-				  plane[bottomPlane]->resetHighlightedCell(x, z);
-				  plane[secondBottomPlane]->resetHighlightedCell(x, z);
+				  if( (bottomPlane >= 0) && (bottomPlane < iNumOfPlanes) )
+					  plane[bottomPlane]->resetHighlightedCell(x, z);
+				  if( (secondBottomPlane >= 0) && (secondBottomPlane < iNumOfPlanes) )
+					  plane[secondBottomPlane]->resetHighlightedCell(x, z);
 			}
 		}
 }
@@ -1631,7 +1672,7 @@ void PlayScreen::dropFigure(Logic& logic)
 	}
 }
 
-bool PlayScreen::isRoundFinished()
+bool PlayScreen::isRoundFinished(Logic& logic)
 {
 	currentFigure->getCubeIndeces(currentCells);// Define what cells should be highlighted
 	// Get the index of the lowest plane of the figure.
@@ -1644,7 +1685,11 @@ bool PlayScreen::isRoundFinished()
 	int iEnd = plane.size();
 	int iTopPlane = getTopEmptyPlane(iStart, iEnd);
 
-	if( iLowestCurrentPlane < iTopPlane )
+	if( iLowestCurrentPlane < iTopPlane )		// If new figure touches the topmost filled plane.
 		return true;
+
+	if( logic.iUserScore >= logic.iMaxScore)	// If the user annihilated enough planes.
+		return true;
+
 	return false;
 }

@@ -32,14 +32,16 @@ public:
 	bool bNewFigure;
 
 	std::size_t iRound;			// Current round.
-	int iUserScore;
+	std::size_t iSystemSize;	// Number of cells in x and z directions.
+	int iUserScore;				// Number of planes annihilated so far.
 
 	float flScreenWidth;
 	float flScreenHeight;
 	bool bRotated;				// True if the view has been rotated at the beginning of a round.
 
-	const std::size_t iRoundMax;// Maximum number of rounds, it is == 9.
-	const int iMaxScore;	
+	const std::size_t iRoundMax;// Maximum number of rounds, it is == 1.
+	const int iMaxScore;		// Maximum number of planes that can be annihilated sequentially.
+	const std::size_t iSystemSizeMax;
 };
 
 class RoundParameters

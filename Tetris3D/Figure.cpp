@@ -25,7 +25,7 @@ void Figure::draw()
 void Figure::drawAsNext()
 {
 	glPushMatrix();
-	glTranslatef(-cubeSize*(iNumOfCellsX + 1), 0.0, 0.0);
+	glTranslatef(-cubeSize*(iNumOfCellsX + 1), -3.*cubeSize, 0.0);
 	for(std::size_t i = 0; i < cubes.size(); ++i)
 		cubes[i]->draw();
 
