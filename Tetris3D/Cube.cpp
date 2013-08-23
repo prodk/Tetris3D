@@ -33,7 +33,7 @@ float Cube::getSize() const
 
 void Cube::rotateX(float angle)
 {
-	// Modify the coordinates of teh cube's center.
+	// Modify the coordinates of the cube's center.
 	float yNew = (vCenter[1] - vOrigin[1])*std::cos(angle) - 
 				(vCenter[2] - vOrigin[2])*std::sin(angle);
 	float zNew = (vCenter[1] - vOrigin[1])*std::sin(angle) + 
@@ -45,7 +45,7 @@ void Cube::rotateX(float angle)
 
 void Cube::rotateY(float angle)
 {
-	// Modify the coordinates of teh cube's center.
+	// Modify the coordinates of the cube's center.
 	float xNew = (vCenter[0] - vOrigin[0])*std::cos(angle) - 
 				(vCenter[2] - vOrigin[2])*std::sin(angle);
 	float zNew = (vCenter[0] - vOrigin[0])*std::sin(angle) + 
@@ -57,7 +57,7 @@ void Cube::rotateY(float angle)
 
 void Cube::rotateZ(float angle)
 {
-	// Modify the coordinates of teh cube's center.
+	// Modify the coordinates of the cube's center.
 	float xNew = (vCenter[0] - vOrigin[0])*std::cos(angle) - 
 				(vCenter[1] - vOrigin[1])*std::sin(angle);
 	float yNew = (vCenter[0] - vOrigin[0])*std::sin(angle) + 
@@ -98,7 +98,7 @@ const vector_3d& Cube::getCenter()
 vector_3d Cube::testRotateX(float angle)
 {
 	vector_3d testCenter;
-	// Modify the coordinates of teh cube's center.
+	// Modify the coordinates of the cube's center.
 	float yNew = (vCenter[1] - vOrigin[1])*std::cos(angle) - 
 				(vCenter[2] - vOrigin[2])*std::sin(angle);
 	float zNew = (vCenter[1] - vOrigin[1])*std::sin(angle) + 
@@ -115,7 +115,7 @@ vector_3d Cube::testRotateY(float angle)
 {
 	vector_3d testCenter;
 
-	// Modify the coordinates of teh cube's center.
+	// Modify the coordinates of the cube's center.
 	float xNew = (vCenter[0] - vOrigin[0])*std::cos(angle) - 
 				(vCenter[2] - vOrigin[2])*std::sin(angle);
 	float zNew = (vCenter[0] - vOrigin[0])*std::sin(angle) + 
@@ -132,7 +132,7 @@ vector_3d Cube::testRotateZ(float angle)
 {
 	vector_3d testCenter;
 
-	// Modify the coordinates of teh cube's center.
+	// Modify the coordinates of the cube's center.
 	float xNew = (vCenter[0] - vOrigin[0])*std::cos(angle) - 
 				(vCenter[1] - vOrigin[1])*std::sin(angle);
 	float yNew = (vCenter[0] - vOrigin[0])*std::sin(angle) + 

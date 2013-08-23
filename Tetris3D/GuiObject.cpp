@@ -2,7 +2,7 @@
 // (c) Nikolay Prodanov, summer 2013, Juelich, Germany.
 #include "GuiObject.h"
 
-/*________________________________*/
+//----------------------------------
 // GuiObject class implementation.
 GuiObject::GuiObject(float xExt, float yExt, float wExt, float hExt,
 	std::size_t idExt, std::string n) :
@@ -43,10 +43,10 @@ int GuiObject::drawText(const std::string &txt, GLfloat x, GLfloat y, GLfloat w,
 	text = TTF_RenderText_Blended(font, txt.c_str(), textColor);
 	SDL_Delay(4);			// Small delay to prevent from full CPU load.
 
-	if (text->format->BytesPerPixel == 3) {// RGB 24bit.
+	if (text->format->BytesPerPixel == 3) {			// RGB 24bit.
 		mode = GL_RGB;
     } 
-    else if (text->format->BytesPerPixel == 4) { // RGBA 32bit.
+    else if (text->format->BytesPerPixel == 4) {	// RGBA 32bit.
 		mode = GL_RGBA;
     } 
     else {
@@ -144,7 +144,7 @@ void GuiObject::draw(TTF_Font *font)
 		drawUnpressed(font);
 }
 
-/*________________________________*/
+//----------------------------------
 //Button class implementation.
 Button::Button(float xExt, float yExt, float wExt, float hExt, 
 	std::size_t idExt, std::string n, int tid) :
@@ -216,7 +216,7 @@ void Button::drawUnpressed(TTF_Font *font)
 	drawText(name, txtX, y, txtW, h, font);
 }
 
-/*________________________________*/
+//----------------------------------
 // OptionsButton class implementation.
 OptionsButton::OptionsButton(float xExt, float yExt, float wExt, float hExt, 
 	std::size_t idExt, std::string n, int tid, std::string cap) :
@@ -301,7 +301,6 @@ void OptionsButton::drawUnpressed(TTF_Font *font)
 	glEnable(GL_LIGHTING);
 	glPopMatrix();
 
-	//drawText(name, x, y, w, h, font);					// Button's name.
 	drawText(name, txtX, y, txtW, h, font);
 	drawText(caption, x+xSmall, y, wSmall, h, font);	// Parameter's value.
 }

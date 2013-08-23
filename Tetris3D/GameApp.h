@@ -6,13 +6,13 @@
 // Most headers are in the "Material.h" and in "Shape.h".
 
 // Std.
-#include <cstdlib>		// standard C functions, like fprintf.
+#include <cstdlib>		// Standard C functions, like fprintf.
 #include <ctime>		// time() function for random seed.
 #include <string>
 #include "SdlScreen.h"
 
 // The main class which contains all the game ingredients.
-class GameApp : public Observer		// The GameApp is an Observer.
+class GameApp : public Observer		// GameApp is an Observer.
 {
 public:
 	GameApp(void);
@@ -43,8 +43,8 @@ private:
 
 	// OpenGl-specific.
 	void setupRenderingContext();	// OGL initial state: depth, lights, materials, etc.
-	void setupMatrices();			// Init transforms: modelview, projection and other matrices.
-	void swapBuffers();				// Swap double buffers.	
+	void setupMatrices();			// Init transforms: texture matrix.
+	void swapBuffers();				// Swap double buffer.	
 
 	// Private members.
 private:
@@ -55,7 +55,7 @@ private:
 	// Game logic related.
 	Logic logic;					// Contains all the flags controlling the flow of the app.
 	bool bBackgroundSound;			// Whether to play background sound.
-	RoundParamsVector roundParams;	// Parameters of the rounds. Now only 3 themes.
+	RoundParamsVector roundParams;	// Parameters of the rounds. Now only 1 theme.
 
 	// Screens.
 	std::tr1::shared_ptr<StartScreen> startScreen;

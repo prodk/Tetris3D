@@ -25,7 +25,7 @@ public:
 	bool bGameOver;				// True if the user has lost.
 	bool bBackgroundSound;
 	bool bActionsSound;			// True if play actions sounds.
-	bool bTrain;				// True if we want to see how comp is playing.
+	bool bTrain;				// True if we want to train.
 	bool bNewRound;				// True if a new round has to be started.
 	bool bNewOptionsScreen;		// When we switch to the options screen, create new buttons.
 	bool bRoundFinished;		// To show the message when someone looses.
@@ -44,6 +44,7 @@ public:
 	const std::size_t iSystemSizeMax;
 };
 
+//----------------------------------
 class RoundParameters
 {
 public:

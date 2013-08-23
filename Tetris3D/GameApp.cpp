@@ -9,12 +9,12 @@ flScreenWidth(1024), flScreenHeight(640), strGameName("Tetris 3D"),
 	//Logic(start, options, howto, play, run, pause, over, bsound, asound);
 	logic(true, false, false, false, true, false, false, true, true, 
 	flScreenWidth, flScreenHeight),
-	iNumOfSounds(5), iNumOfFonts(1), iNumOfTextures(5)// Button texture isn't counted here.
+	iNumOfSounds(5), iNumOfFonts(1), iNumOfTextures(5)// Button's texture isn't counted here.
 {
 	// Exceptions and bad values are caught/checked inside the functions and printed to stderr.
 	initLibraries();
 	loadData();
-	setupRoundParams();	// Set the parameters of all the rounds.
+	setupRoundParams();	// Set the parameters of the rounds.
 	createScreens();
 	registerObservers();// Register observers for the Observer pattern to manage the sound.
 }
@@ -95,7 +95,7 @@ void GameApp::loadSounds()
 
 	// Start paused sounds.
 	channelRound.resize(1);		// Only one sound for rounds.
-	// Options.
+	// Screens.
 	if( (sounds[0] != NULL) && (system != NULL) )
 		result = system->playSound(sounds[0], 0, true, &channelOptions);
 	// Rounds sound.
@@ -228,7 +228,6 @@ void GameApp::setupRenderingContext()
 	glLightfv(GL_LIGHT0, GL_POSITION, position);
 
 	glEnable(GL_LIGHT0);		// Enable stationary light.
-	glEnable(GL_LIGHT1);		// Light moving with the ball.
 
 	// Global light settings.
 	GLfloat global_ambient[] = { 0.3f, 0.3f, 0.3f, 1.0f };	// 'magic number'
@@ -413,22 +412,15 @@ void GameApp::playBackgroundSound()
 	}
 }
 
+// This function is not really necessary, 
+// exists for consistency with the PlayScreen constructor.
 void GameApp::setupRoundParams()
 {
 	roundParams.resize(logic.iRoundMax);
-
-	// These are all 'magic numbers' found empirically.
-	float flBoxWidth = 1.2f;
-	float flBoxHeight = 1.0f;
-	float flBoxThickness = 0.6f;
-	float flBallVel = 5.4e-03;
-	float flCompPaddleVel = 0.021;
-
-	std::size_t nRounds = roundParams.size();
 	// Specify different values of the parameters for each round.
-	for(std::size_t i = 0; i < nRounds; i++){
+	for(std::size_t i = 0; i < roundParams.size(); i++){
 		RoundParameters *pParams =
-			new RoundParameters(flBoxWidth, flBoxHeight);
+			new RoundParameters(1., 1.);
 		roundParams[i] = std::tr1::shared_ptr<RoundParameters>(pParams);
 	}
 }

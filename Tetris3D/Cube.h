@@ -24,7 +24,7 @@ public:
 	vector_3d testRotateZ(float angle);
 
 	void moveX(int factor);
-	void moveY(int factor);				// Fall.
+	void moveY(int factor);		// Move in y direction.
 	void moveZ(int factor);
 
 	// Emulate the movement of the cube to check the boundaries.

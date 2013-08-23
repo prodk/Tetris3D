@@ -3,9 +3,9 @@
 #ifndef SDL_SCREEN
 #define SDL_SCREEN
 
+#include <map>
 #include "GuiObject.h"
 #include "Figure.h"
-#include <map>
 #include "FixedCubes.h"
 
 typedef std::vector<std::tr1::shared_ptr<TEXTURE> > TEXTURE_PTR_ARRAY;
@@ -19,8 +19,8 @@ public:
 	virtual ~SdlScreen(void);
 
 	// Public methods to override. Some of them have the default implementation.
-	virtual void doInput(Logic &l, SDL_Event sdlEvent);	// Not pure virtual, Keyboard/mouse.
 	virtual void doDrawing(Logic &logic) = 0;
+	virtual void doInput(Logic &l, SDL_Event sdlEvent);	// Not pure virtual, Keyboard/mouse.	
 	virtual void notify(Subject* s);
 
 	// Class specific method with fixed implementation.
@@ -31,7 +31,7 @@ protected:
 		TTF_Font *font, Logic &logic, SDL_Color textColor);
 	void drawBackgroundTexture(int id, float z);
 
-	// Event handlers.
+	// Event handlers, possibly to override.
 	virtual void handleKeyDown(const SDL_Event& sdle, Logic &l);
 	virtual void handleKeyUp(const SDL_Event& sdle, Logic &l);
 	virtual void handleResize(const SDL_Event& sdle, Logic &l);
@@ -39,6 +39,7 @@ protected:
 	virtual void handleMouseButtonDown(const SDL_Event& sdle, Logic &l);
 	virtual void handleMouseButtonUp(const SDL_Event& sdle, Logic &l);
 
+	// Members.
 protected:
 	enum{START_BTN, OPTIONS_BTN, HOWTO_BTN, TRAIN_BTN,			// Start screen buttons.
 		 BACKGRSND_BTN, ACTIONSND_BTN, ROUND_BTN, BACK_BTN};	// Options screen buttons.
@@ -57,7 +58,7 @@ protected:
 	TTF_Font** fonts;	
 };
 
-/*_________________________*/
+//-------------------------
 // ButtonScreen.
 class ButtonScreen : public SdlScreen
 {
@@ -91,7 +92,7 @@ protected:
 	int iPrevFocusButton;				// Previously highlighted button.
 };
 
-/*________________________________*/
+//--------------------------------
 // StartScreen is a ButtonScreen.
 class StartScreen : public ButtonScreen
 {
@@ -104,7 +105,7 @@ private:
 	void addButtons();
 };
 
-/*________________________________*/
+//----------------------------------
 // OptionsScreen is a ButtonScreen.
 class OptionsScreen : public ButtonScreen
 {
@@ -119,7 +120,7 @@ private:
 	void addButtons(Logic & logic);
 };
 
-/*________________________________*/
+//----------------------------------
 // HowtoScreen is a ButtonScreen.
 class HowtoScreen : public ButtonScreen
 {
@@ -136,7 +137,7 @@ private:
 	void handleKeyDown(const SDL_Event& sdle, Logic &l);
 };
 
-/*________________________________*/
+//----------------------------------
 // PlayScreen declaration.
 class PlayScreen : public SdlScreen
 {
@@ -165,17 +166,13 @@ private:
 	void handleResize(const SDL_Event& sdle, Logic &l);
 	void handleMouseMotion(const SDL_Event& sdle, Logic &l);
 	void handleMouseButtonDown(const SDL_Event& sdle, Logic &l);
-	//void handleMouseButtonUp(const SDL_Event& sdle, Logic &l);
 
 	// OpenGl-specific.
-	void drawAxes() const;			// Currently not used, but exists just in case.
+	void drawAxes() const;
 	void initView();				// Avoid code duplication in doDrawing() and pickObjects().
 	void initResize();				// Avoid code dupl. in setupMatrices() and handleResize().
-	void rotateView(float dx);
-	
+	void rotateView(float dx);	
 	void initMembers(const Logic &l);
-
-	void drawScoreAndRound(Logic &l);// Currently not used, as it is too computationally demanding.
 
 	// Inline: calculate the angle used in the perspective.
 	float calculateAngle(float size, double zAxisDistance) {
@@ -192,46 +189,46 @@ private:
 		float angley);
 	void drawScoreAndRoundOptimized(Logic &logic);
 
-	void manageCellsFilling();				// Specify which cells should be drawn as filled.
+	// Game-logic related.
+	// Cells-related.
+	void manageCellsFilling();				// Specify which cells should be highlighted.
+	void setHighlightedCells(std::vector<CellIndeces>& cells);
+	void resetHighlightedCells(std::vector<CellIndeces>& cells);
 	void checkCollision(Logic &logic);		// Figure collision with the fixed cubes.
-	void annihilateLayers(Logic &logic);				// Remove completely filled planes of cubes.
-	std::tr1::shared_ptr<Figure> createNewFigure();
+	void annihilateLayers(Logic &logic);	// Remove completely filled planes of cubes.
+	std::tr1::shared_ptr<Figure> createNewFigure();	// Factory function.
+	void createPlanes();
+	int getTopEmptyPlane(int iStart, int iEnd);
+	// Plane-related.	
+	void drawPlanes();
+	void addCubes();
+	void dropFigure(Logic& logic);		// Make the figure to fall down.
+	bool isRoundFinished(Logic& logic);	// True if the figure touches the highest filled plane 
+										// or the user annihilated 15 layers.
 
 	// Private members.
 private:
 	// Game logic.
+	// Figure-related.
 	std::tr1::shared_ptr<Figure> currentFigure;
 	std::tr1::shared_ptr<Figure> nextFigure;
-	int iFrameDelayMove;	// Number of frames to wait before moves, defines the falling speed.
+	vector_3d vFigureOrigin;
+	int cubesPerFigure;
+	int iCurrentFigureId;
+	int iFrameDelayMove;	// Number of frames to wait before moves, the falling speed.
+	float cubeSize;
 
+	// Planes-related.
+	std::vector<std::tr1::shared_ptr<PlaneOfCells> > plane;	// Planes containing cells.
+	std::tr1::shared_ptr<FixedCubes> fixedCubes;
 	int iNumOfPlanes;
 	int iNumOfCellsX;
 	int iNumOfCellsZ;
-	std::tr1::shared_ptr<FixedCubes> fixedCubes;
-
-	int iCurrentFigureId;
-	vector_3d vFigureOrigin;
-	int cubesPerFigure;
-	float cubeSize;
-	std::vector<CellIndeces> currentCells;	// Indeces of cells that are occupied by the figure.
-	std::vector<CellIndeces> previousCells;	// Cells that were occupied on the previous step.
-
-	// Data/methods from FixedCube.
-	void createPlanes();
-	int getTopEmptyPlane(int iStart, int iEnd);
-	void setHighlightedCells(std::vector<CellIndeces>& cells);
-	void resetHighlightedCells(std::vector<CellIndeces>& cells);
 	int bottomPlane;
 	int secondBottomPlane;
-	int iLowestCurrentPlane;
-	void drawPlanes();
-	void addCubes();
-	// Make the figure to fall down. Necessary to provide a normal tetris 
-	// behavior - move laterally after falling down.
-	void dropFigure(Logic& logic);	
-	bool isRoundFinished(Logic& logic);	// Returns true if the figure touches the highest filled plane.
-	std::vector<std::tr1::shared_ptr<PlaneOfCells> > plane;	// Vector of planes containing cells.
-	// End data/methods from FixedCube.
+	int iLowestCurrentPlane;	
+	std::vector<CellIndeces> currentCells;	// Indeces of cells that are occupied by the figure.
+	std::vector<CellIndeces> previousCells;	// Cells that were occupied on the previous step.
 
 	// Game drawing related.
 	float flAngleFrustum;
@@ -245,26 +242,20 @@ private:
 	float angleViewZ;				// Rotate view around Z.
 	float angleViewX;				// Rotate view around X.
 	float flScaleAll;				// Zooming factor.
-	float angleViewYMax;			// Initial rotation before a round starts.
-	float deltaAngleY;				// Increments of the initial rotation.
+	float angleViewYMax;
 
 	RoundParamsVector roundParams;
 	std::size_t iCurRound;
 	bool bPlaySound;
-	bool bKeyDown;
+	bool bKeyDown;					// Prevent from multiple events while pressing one key.
 
 	// Sizes/other parameters.
-	float flBoxWidth;		// !May be redundant.
-	float flBoxHeight;		// !May be redundant.
 	float flScaleMax;				// Limit scaling the scene.
 	float flScaleMin;
-
 	float flDeltaAngleViewZ;
 	float flDeltaScale;				// Scaling factor increment for keyboard handling.
-	float flDeltaPaddle;			// Move paddle by this amount using keyboard.
-
-	int iShowMessageCount;			// How many frames the msg "You/Comp lost!" is shown.
-	int iMaxShowMessageCount;		// How many frames the msg "You/Comp lost!" is shown.
+	int iShowMessageCount;			// How many frames the msg "You lost!" is shown.
+	int iMaxShowMessageCount;		// How many frames the msg "You lost!" is shown.
 
 	// Members for optimized text output.
 	int iNumOfStringTextures;

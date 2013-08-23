@@ -21,14 +21,14 @@ Logic::Logic(bool startscreen , bool options, bool howto, bool play,
 	bRoundFinished = false;			// To show the message when someone looses.
 	bNewFigure = false;
 
-	iSystemSize = 4;				// Num of cells in x and z directions.
+	iSystemSize = 4;				// Default number of cells in x and z directions.
 }
 
 Logic::~Logic(void)
 {
 }
 
-/*______________*/
+//----------------------------------
 // RoundParameters implementation.
 RoundParameters::RoundParameters(float w, float h):
 	flBoxWidth(w), flBoxHeight(h)

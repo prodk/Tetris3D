@@ -29,7 +29,7 @@ void Cell::setCubeSize(float size)
 	cubeSize = size;
 }
 
-int Cell::getCubeIdx()
+int Cell::getCubeIdx() const
 {
 	return cubeId;
 }
@@ -224,7 +224,7 @@ bool PlaneOfCells::isCellFilled(int x, int z)
 	return true;
 }
 
-void PlaneOfCells::fillCell(int x, int z, int cubeId)// Mark the cell as containing a fixed cube.
+void PlaneOfCells::fillCell(int x, int z, int cubeId)// Save cube id into the cell.
 {
 	cell[x*iNumOfCellsX + z].setCubeIdx(cubeId);
 }

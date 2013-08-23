@@ -17,8 +17,8 @@ public:
 	Cell();
 	~Cell();
 
-	void setCubeIdx(int idx);
-	int getCubeIdx();
+	void setCubeIdx(int idx);	// Sets the index of a cube located at the current cell.
+	int getCubeIdx() const;
 
 	void setCubeSize(float size);
 	void setMaterials(std::tr1::shared_ptr<Material> grid, std::tr1::shared_ptr<Material> fill);
@@ -27,16 +27,13 @@ public:
 	void drawLeftFace(int x, int planeId, int z);
 	void drawRightFace(int x, int planeId, int z);
 	void drawBottomFace(int x, int planeId, int z);
-
-	void setPolygonMode(int mode);
+	void setPolygonMode(int mode);	// Helper for highlighting/unhighlighting.
 	int getPolygonMode();
 
 private:
 	int cubeId;				// An id of the fixed cube, -1 otherwise.
 	int polygonMode;
-
 	float cubeSize;			// Required for drawing.
-
 	std::tr1::shared_ptr<Material> pMaterialGrid;
 	std::tr1::shared_ptr<Material> pMaterialFill;
 };
@@ -51,40 +48,39 @@ public:
 	~PlaneOfCells();
 
 	bool isFilled();				// True if all the cells in the plane contain a fixed cube.
-	bool isEmpty();
+	bool isEmpty();					// True if all the cells are empty, i.e. contain -1.
 	bool isCellFilled(int x, int z);// True if the cell[x*Nx + z] is filled.
-	void fillCell(int x, int z, int cubeId);// Mark the cell as containing a fixed cube.
+	void fillCell(int x, int z, int cubeId);// Save the id of a cube into the cell.
 	void drawLeftFaces();
 	void drawBottomFaces();
 	void drawRightFaces();
 	void drawHighlightedBottomCells();
 
-	void setHighlightedLeftCell(int z);	// Indicate the cell to be highlighted.
-	void resetHighlightedLeftCell(int z);// Say that the cell shouldn't be highlighted.
+	void setHighlightedLeftCell(int z);		// Indicate the cell to be highlighted.
+	void resetHighlightedLeftCell(int z);	// Say that the cell shouldn't be highlighted.
 	void setHighlightedRightCell(int z);	// Indicate the cell to be highlighted.
-	void resetHighlightedRightCell(int z);// Say that the cell shouldn't be highlighted.
-	void setHighlightedCell(int x, int z); // Set any highlighted cell.
+	void resetHighlightedRightCell(int z);	// Say that the cell shouldn't be highlighted.
+	void setHighlightedCell(int x, int z);	// Set any highlighted cell.
 	void resetHighlightedCell(int x, int z);// Reset any highlighted cell.
 
-	int getCubeIndex(int x, int z);				// Return the index of a cube stored in the cell.
-	const std::vector<Cell>& getCells();		// Rerurn all the cells.
+	int getCubeIndex(int x, int z);			// Return the index of a cube stored in the cell.
+	const std::vector<Cell>& getCells();	// Rerurn all the cells.
 	void copyCells(const std::vector<Cell>& c);	
 
 private:
 	void initCells();		// Set cube index in all the cells to -1.
 
 private:
-	int planeId;			// The number of the plane in the vertical (y) direction.
+	int planeId;			// Sequence number of the plane in the vertical (y) direction.
 	int iNumOfCellsX;
 	int iNumOfCellsZ;
-
 	float cubeSize;
 	std::vector<Cell> cell;	// Vector of cells in the plane.
 };
 
 //---------------------------------
 // FixedCubes.
-// A mediator class, manages collisions of the figure and annihilates layers of fixed cubes.
+// A mediator class, holds fixed cubes.
 class FixedCubes
 {
 public:
@@ -92,7 +88,7 @@ public:
 	~FixedCubes(void);
 
 	void draw();
-	void eraseCube(int cubeIndex);
+	void eraseCube(int cubeIndex);				// Delete the cube, used during annihilation.
 	void moveCubeY(int factor, int cubeIndex);
 	void insertCube(std::tr1::shared_ptr<Cube> c, int cubeId);
 

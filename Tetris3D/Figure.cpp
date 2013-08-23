@@ -243,7 +243,7 @@ bool Figure::testRotateZ(pPlanes& planes)
 		n = (testCenter[0] + shiftX)/cubeSize;
 		if( (n < 0) || (n >= iNumOfCellsX) )
 			return false;
-		// z-direction.
+		// y-direction.
 		n = (testCenter[1] + shiftY)/cubeSize;
 		if( (n < 0) || (n >= iNumOfPlanes) )
 			return false;
@@ -282,7 +282,7 @@ const std::vector<std::tr1::shared_ptr<Cube> > & Figure::getCubes()
 	return cubes;
 }
 
-//_____________________//
+//----------------------------------
 // Lfigure.
 Lfigure::Lfigure(std::size_t nCubes, vector_3d vO, std::size_t idExt, 
 	float size, int x, int p, int z) :
@@ -295,7 +295,6 @@ Lfigure::~Lfigure(void)
 {
 }
 
-//!Put the duplicated code for cubes creation in a separate method!
 void Lfigure::createCubes()
 {
 	cubes.resize(iNumOfCubes);
@@ -334,7 +333,7 @@ void Lfigure::createCubes()
 	cubes[id]->setOrigin(vOrigin);
 }
 
-//_____________________//
+//----------------------------------
 // Ofigure.
 Ofigure::Ofigure(std::size_t nCubes, vector_3d vO, std::size_t idExt, 
 	float size, int x, int p, int z) :
@@ -383,7 +382,7 @@ void Ofigure::createCubes()
 	cubes[id]->setOrigin(vOrigin);
 }
 
-//_____________________//
+//----------------------------------
 // Sfigure.
 Sfigure::Sfigure(std::size_t nCubes, vector_3d vO, std::size_t idExt, 
 	float size, int x, int p, int z) :
@@ -435,7 +434,7 @@ void Sfigure::createCubes()
 	cubes[id]->setOrigin(vOrigin);
 }
 
-//_____________________//
+//----------------------------------
 // Ifigure.
 Ifigure::Ifigure(std::size_t nCubes, vector_3d vO, std::size_t idExt, 
 	float size, int x, int p, int z) :
@@ -456,7 +455,6 @@ void Ifigure::createCubes()
 	// Left top cube.
 	std::size_t id = 0;
 	vector_3d center = vOrigin;
-
 
 	// Put the rotation point to one of the verteces.
 	center[0] += 0.5*cubeSize;
@@ -488,7 +486,7 @@ void Ifigure::createCubes()
 	cubes[id]->setOrigin(vOrigin);
 }
 
-//_____________________//
+//----------------------------------
 // Tfigure.
 Tfigure::Tfigure(std::size_t nCubes, vector_3d vO, std::size_t idExt, 
 	float size, int x, int p, int z) :

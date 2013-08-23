@@ -6,7 +6,7 @@
 #include "Shape.h"
 #include "Logic.h"
 
-/*________________________________*/
+//----------------------------------
 // GuiObject.
 class GuiObject
 {
@@ -53,7 +53,7 @@ protected:
 	bool bHasFocus;
 };
 
-/*________________________________*/
+//----------------------------------
 // Button is a GuiObject.
 class Button : public GuiObject
 {
@@ -68,7 +68,7 @@ protected:
 	int textureId;
 };
 
-/*________________________________*/
+//----------------------------------
 // OptionsButton is a variant of the Button.
 class OptionsButton : public Button
 {

@@ -16,7 +16,7 @@ public:
 
 	// Functions to override.
 	virtual void draw();
-	virtual void drawAsNext();
+	virtual void drawAsNext();				// Is used when the figure is the next figure.
 	virtual void rotateX(pPlanes& planes);
 	virtual void rotateY(pPlanes& planes);
 	virtual void rotateZ(pPlanes& planes);
@@ -27,9 +27,9 @@ public:
 	void moveZ(int factor, pPlanes& planes);
 
 	// Prevent from movement/rotation that results in a cube outside the scene.
-	bool testMoveX(int factor, pPlanes& planes);	// Returns true if the figure doesn't move outside the scene.
-	bool testMoveY(int factor, pPlanes& planes);	// Returns true if the figure doesn't move outside the scene.
-	bool testMoveZ(int factor, pPlanes& planes); // Returns true if the figure doesn't move outside the scene.
+	bool testMoveX(int factor, pPlanes& planes);// True if the figure doesn't move outside the scene.
+	bool testMoveY(int factor, pPlanes& planes);// True if the figure doesn't move outside the scene.
+	bool testMoveZ(int factor, pPlanes& planes);// True if the figure doesn't move outside the scene.
 
 	bool testRotateX(pPlanes& planes);
 	bool testRotateY(pPlanes& planes);
@@ -58,7 +58,7 @@ protected:
 	float pi;
 };
 
-//___________________//
+//----------------------------------
 // Lfigure.
 class Lfigure : public Figure
 {
@@ -71,7 +71,7 @@ protected:
 	void createCubes();
 };
 
-//___________________//
+//----------------------------------
 // Ofigure.
 class Ofigure : public Figure
 {
@@ -84,7 +84,7 @@ protected:
 	void createCubes();
 };
 
-//___________________//
+//----------------------------------
 // Sfigure.
 class Sfigure : public Figure
 {
@@ -97,7 +97,7 @@ protected:
 	void createCubes();
 };
 
-//___________________//
+//----------------------------------
 // Ifigure.
 class Ifigure : public Figure
 {
@@ -110,7 +110,7 @@ protected:
 	void createCubes();
 };
 
-//___________________//
+//----------------------------------
 // Tfigure.
 class Tfigure : public Figure
 {

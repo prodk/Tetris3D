@@ -1,8 +1,8 @@
-// SdlScreen.cpp - implementation of the SdlScreen class and all its child classes.
+// SdlScreen.cpp - implementation of the SdlScreen class and all its children.
 // (c) Nikolay Prodanov, summer 2013, Juelich, Germany.
 #include "SdlScreen.h"
 
-/*________________________________*/
+//----------------------------------
 //  SdlScreen implementation.
 SdlScreen::SdlScreen(int idExt, float w, float h, SDL_Surface* s, TEXTURE_PTR_ARRAY t, TTF_Font** fnt,
 		FMOD::System *sys, std::vector<FMOD::Sound*> snd) :
@@ -185,7 +185,7 @@ void SdlScreen::notify(Subject* s)
 {
 }
 
-/*________________________________*/
+//----------------------------------
 // ButtonScreen implementation.
 ButtonScreen::ButtonScreen(int idExt, float w, float h, SDL_Surface* s, 
 	TEXTURE_PTR_ARRAY t, TTF_Font** fnt,
@@ -306,7 +306,7 @@ void ButtonScreen::processButton(std::size_t id, Logic & logic)
 		logic.notifyObservers();// Tell registered observers to change their settings.
 		break;
 
-	case ROUND_BTN:				// Change the round.
+	case ROUND_BTN:				// Change the number of cells in x and z directions.
 		logic.iSystemSize = logic.iSystemSize % logic.iSystemSizeMax + 2;
 		if(logic.iSystemSize < 3)
 			logic.iSystemSize = 4;
@@ -499,7 +499,7 @@ void ButtonScreen::notify(Subject* s)
 	bPlayButtonSound = ((Logic*) s)->bActionsSound;
 }
 
-/*________________________________*/
+//----------------------------------
 // StartScreen implementation.
 // In StartScreen buttons are added only once, during the creation of the object.
 StartScreen::StartScreen(int idExt, float w, float h, SDL_Surface* s, 
@@ -554,7 +554,7 @@ void StartScreen::addButtons()
 	}
 }
 
-/*________________________________*/
+//----------------------------------
 // OptionsScreen implementation.
 // In OptionsScreen buttons are added every time this screen is shown, not just during creation.
 OptionsScreen::OptionsScreen(int idExt, float w, float h, SDL_Surface* s, 
@@ -630,7 +630,7 @@ void OptionsScreen::addButtons(Logic &logic)
 	}
 }
 
-/*________________________________*/
+//----------------------------------
 // HowtoScreen implementation.
 HowtoScreen::HowtoScreen(int idExt, float w, float h, SDL_Surface* s, 
 	TEXTURE_PTR_ARRAY t, TTF_Font** fnt,
@@ -775,7 +775,7 @@ void HowtoScreen::handleMouseButtonUp(const SDL_Event& sdle, Logic &logic)
 	}
 }
 
-/*________________________________*/
+//----------------------------------
 // PlayScreen implementation.
 PlayScreen::PlayScreen(int idExt, float w, float h, SDL_Surface* s, TEXTURE_PTR_ARRAY t, TTF_Font** fnt, 
 	 FMOD::System *sys,std::vector<FMOD::Sound*> snd,
@@ -784,10 +784,8 @@ PlayScreen::PlayScreen(int idExt, float w, float h, SDL_Surface* s, TEXTURE_PTR_
 {
 	iShowMessageCount = 0;
 	iMaxShowMessageCount = 200;
-	flDeltaAngleViewZ = 3.;
+	flDeltaAngleViewZ = 3.;		// Mouse wheel rotation.
 	flDeltaScale = 0.01;
-	flDeltaPaddle = 0.01;
-
 	bKeyDown = false;
 
 	// Optimize the string output - load string textures only once and then reuse them.
@@ -805,49 +803,39 @@ PlayScreen::~PlayScreen()
 void PlayScreen::initMembers(const Logic &logic)
 {
 	// 'magic numbers'.
-	// Use 8 cubes in the lateral direction instead of 10 (as in 2D Tetris).
-	// This accelerates building.
 	iNumOfPlanes = 12;
-	iNumOfCellsX = logic.iSystemSize;// 4;
-	iNumOfCellsZ = logic.iSystemSize;//4;
+	iNumOfCellsX = logic.iSystemSize;	// Get lateral (xz) size (number of cells) from options.
+	iNumOfCellsZ = logic.iSystemSize;	// Get lateral size from options.
 	cubeSize = 1.;
-
-	// From FixedCubes.
 	bottomPlane = 0;
 	secondBottomPlane = 0;
 	iLowestCurrentPlane = 0;
 	createPlanes();
 
-	// Get a fresh set of cells that track fixed cubes.
+	// Get a fresh set of cells that keep track of fixed cubes.
 	fixedCubes = 
 		std::tr1::shared_ptr<FixedCubes>( new FixedCubes(iNumOfPlanes, iNumOfCellsX, iNumOfCellsZ, cubeSize) );
 
 	cubesPerFigure = 4;						// All the figures consist of 4 cubes.
-	currentCells.resize(cubesPerFigure);
+	currentCells.resize(cubesPerFigure);	// Keep track of 4 cells filled with the figure.
 	previousCells.resize(cubesPerFigure);
-	iCurrentFigureId = -cubesPerFigure;		// Start from the negative to get 0 at the start.
+	iCurrentFigureId = -cubesPerFigure;		// Start from the negative to get 0 at 1st iteration.
 
-	// Moving speed.
 	iFrameDelayMove = 200;					// Moving speed.
-	bKeyDown = false;
-	
-	// Round info is not important, we have only one round.
-	iCurRound = logic.iRound - 1;
-	flBoxWidth = roundParams[iCurRound]->flBoxWidth;
-	flBoxHeight = roundParams[iCurRound]->flBoxHeight;
+	bKeyDown = false;						// Keyboard keys are unpressed at the beginning.
+	iCurRound = logic.iRound - 1;			// There's only one round.
 
 	// 'magic numbers'.
 	xViewOld = 0.;
 	yViewOld = 0.;
-	angleViewY = 10.;					// Initial angle (around y) of the view.
-	angleViewYMax = 10.;				// Final initial angle view.
-	deltaAngleY = angleViewYMax * 0.02;	// Increments of the angle to rotate at the beginning.
-	angleViewZ = 0.;
 	angleViewX = 10.;
+	angleViewY = 10.;				// Initial angle (around y) of the view.
+	angleViewYMax = 10.;			// Final initial angle view.
+	angleViewZ = 0.;				// Rotation of the view around z axis.
 	flZaxisDistance = 15.f;
 	flLengthUnit = 4.f;				// This influences the distance from the camera.
 									// The smaller the value, the closer the scene to the camera.
-	flScaleAll = 1.;					// Scaling factor.
+	flScaleAll = 1.;				// Scaling factor.
 	flScaleMax = 4.;
 	flScaleMin = 0.1;
 }
@@ -889,52 +877,20 @@ void PlayScreen::doInput(Logic &logic, SDL_Event sdlEvent)
 	}
 }
 
-// Currently not used.
-void PlayScreen::drawScoreAndRound(Logic &logic)
-{
-	glPushMatrix();					// Save current matrix.
-
-	glEnable( GL_TEXTURE_2D );
-	glRotatef(-90, 0.0f, 1.0f, 0.0f);
-
-	SDL_Color textColor;
-	textColor.r = 0;
-	textColor.g = 0.;
-	textColor.b = 1.;
-	
-	std::stringstream str0;
-	str0 << "R:" << logic.iRound << " U:" << logic.iUserScore;
-	drawText(str0.str(), -0.195, -0.5*flBoxHeight, 0.35, 0.1, fonts[0], logic, textColor);
-
-	if(logic.bRoundFinished){
-		glTranslatef(0., 0., 0.3);
-		std::string str3;
-		if(logic.bGameOver){
-			str3 = "You lost!";
-			drawText(str3, -0.195, -0.5*flBoxHeight, 0.4, 0.1, fonts[0], logic, textColor);
-		}
-		else{
-			str3 = "Comp lost!";
-			drawText(str3, -0.195, -0.5*flBoxHeight, 0.4, 0.1, fonts[0], logic, textColor);
-		}		
-	}
-
-	glDisable( GL_TEXTURE_2D);	
-	glPopMatrix();
-}
-
 void PlayScreen::doDrawing(Logic &logic)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear buffer for new data.
+
 	// Draw the background image.	
 	drawBackgroundTexture(id, 1.);
+
 	// Initialize the screen/scene.
 	initResize();
 	initView();
 
-	// Draw the axes, the grid, fixed cubes, the figure.
+	// Draw the axes, grid, fixed cubes, current and next figures.
 	drawAxes();
-	drawPlanes();			// Grid of cubes with highlighting.
+	drawPlanes();			// Grid of cells, some of which are highlighted.
 	fixedCubes->draw();
 	currentFigure->draw();
 	nextFigure->drawAsNext();
@@ -965,7 +921,6 @@ void PlayScreen::handleMouseButtonDown(const SDL_Event& sdle, Logic &logic)
 	}// End switch.
 }
 
-// 'magic numbers' are below.
 void PlayScreen::handleMouseMotion(const SDL_Event& sdle, Logic &logic)
 {
 	switch(sdle.motion.state)
@@ -985,14 +940,14 @@ void PlayScreen::handleKeyDown(const SDL_Event& sdle, Logic &logic)
 	// Check keyboard.
  	switch(sdle.key.keysym.sym)
 	{
-	case SDLK_EQUALS:					// Reset view.
+	case SDLK_EQUALS:				// Reset view.
 		angleViewY = angleViewYMax;
 		angleViewZ = 0.;
 		angleViewX = 10.;
 		flScaleAll = 1.;
 		break;
 
-	case SDLK_b:
+	case SDLK_b:					// Go back to the StartScreen.
 		if(!logic.bShowStartScreen) {
 			logic.bShowStartScreen = true;
 			logic.bNewRound = true;		// Start from scratch.
@@ -1000,35 +955,35 @@ void PlayScreen::handleKeyDown(const SDL_Event& sdle, Logic &logic)
 		logic.notifyObservers();		// Tell observers to change their sound behavior.
 		break;
 
-	case SDLK_p:	 // Zoom in.
+	case SDLK_p:					// Zoom in.
 		if(flScaleAll < flScaleMax)
 			flScaleAll += flDeltaScale;
 		break;
 
-	case SDLK_m:	// Zoom out.
+	case SDLK_m:					// Zoom out.
 		if(flScaleAll > flScaleMin)
 			flScaleAll -= flDeltaScale;
 		break;
 
-	case SDLK_v:	// Pause.
+	case SDLK_v:					// Pause.
 		logic.bGamePaused = true;
 		logic.bNewRound = false;
 		logic.notifyObservers();
 		break;
 
-	case SDLK_SPACE:// Unpause.
+	case SDLK_SPACE:				// Unpause.
 		logic.bGamePaused = false;
 		logic.notifyObservers();
 		break;
 
-	case SDLK_ESCAPE:// Quit.
+	case SDLK_ESCAPE:				// Quit.
 		logic.bAppRunning = false;
 		break;		
 
 		// Rotation.
-		// xy-plane, z-axis.
+		// xy-plane, around z-axis.
 	case SDLK_a:
-		if(!bKeyDown){			// Prevent from processing multiple times at one pressing.
+		if(!bKeyDown){				// Prevent from processing multiple times at one pressing.
 			bKeyDown = true;
 			currentFigure->rotateZ( plane );
 			if(bPlaySound)
@@ -1036,9 +991,9 @@ void PlayScreen::handleKeyDown(const SDL_Event& sdle, Logic &logic)
 		}
 		break;
 
-		// xz-plane, y-axis.
+		// xz-plane, around y-axis.
 	case SDLK_s:
-		if(!bKeyDown){			// Prevent from processing multiple times at one pressing.
+		if(!bKeyDown){				// Prevent from processing multiple times at one pressing.
 			bKeyDown = true;
 			currentFigure->rotateY( plane );
 			if(bPlaySound)
@@ -1047,7 +1002,7 @@ void PlayScreen::handleKeyDown(const SDL_Event& sdle, Logic &logic)
 		break;
 
 	case SDLK_d:
-		if(!bKeyDown){			// Prevent from processing multiple times at one pressing.
+		if(!bKeyDown){				// Prevent from processing multiple times at one pressing.
 			bKeyDown = true;
 			currentFigure->rotateX( plane );
 			if(bPlaySound)
@@ -1055,9 +1010,9 @@ void PlayScreen::handleKeyDown(const SDL_Event& sdle, Logic &logic)
 		}
 		break;
 
-	case SDLK_RSHIFT:			// Accelerate the vertical movement of the figure.
-	case SDLK_LSHIFT:			// Fall through.
-		if(!bKeyDown){			// Prevent from processing multiple times at one pressing.
+	case SDLK_RSHIFT:				// Accelerate the vertical movement of the figure.
+	case SDLK_LSHIFT:				// Fall through.
+		if(!bKeyDown){				// Prevent from processing multiple times at one pressing.
 			bKeyDown = true;
 			int factor = -1;
 			currentFigure->moveY(factor, plane);
@@ -1158,14 +1113,14 @@ void PlayScreen::drawAxes() const
 }
 
 void PlayScreen::doLogic(Logic &logic)
-{
-	// Drop figure was here.	
+{	
 	manageCellsFilling();	// Manage highlighted/unhighlighted cells during drawing.
 
 	// Note: both previous and current highlighted cells are reset if collision occurs.
-	checkCollision(logic);		// Figure collision with the fixed cubes/bottom plane.
+	checkCollision(logic);	// Figure collision with the fixed cubes/bottom plane.
 }
 
+// All the game actions are managed in play() function.
 void PlayScreen::play(Logic &logic, SDL_Event sdlEvent)
 {
 	// New round: resize the screen, change round parameters.
@@ -1180,7 +1135,7 @@ void PlayScreen::play(Logic &logic, SDL_Event sdlEvent)
 	if( logic.bNewFigure ){
 		logic.bNewFigure = false;
 		currentFigure = nextFigure;		// Make the next figure to be the current figure.
-		nextFigure = createNewFigure();	// Create the next new figure.
+		nextFigure = createNewFigure();	// Create the new next figure.
 
 		logic.bRoundFinished = isRoundFinished(logic);
 	}
@@ -1196,7 +1151,7 @@ void PlayScreen::play(Logic &logic, SDL_Event sdlEvent)
 			doLogic(logic);
 	}
 
-	// If round finished, show a msg about who has lost.
+	// If round finished, show a msg about whether the user has lost/won the game.
 	if(logic.bRoundFinished){
 		if(iShowMessageCount < iMaxShowMessageCount)// Show the msg for iMaxShowMessageCount frames.
 			++iShowMessageCount;
@@ -1401,7 +1356,7 @@ void PlayScreen::checkCollision(Logic &logic)
 	for(i = 0; i < currentCells.size(); ++i){
 		iPlaneBelow = currentCells[i].plane - 1;// Get the plane under the current cell.
 		// If collision occurred.
-		if( (iPlaneBelow < 0) || 
+		if( (iPlaneBelow < 0) || // Bottom plane.
 			( (iPlaneBelow >= 0) && (iPlaneBelow < iNumOfPlanes) &&
 			plane[iPlaneBelow]->isCellFilled(currentCells[i].x, currentCells[i].z) )
 			)
@@ -1473,7 +1428,7 @@ label:
 
 			// Shift all the nonempty planes by one plane to the bottom.
 			// This involves 2 steps:
-			// 1) copy the content of the cells of the upper plane to the current one.
+			// 1) copy the content of the cells of the upper plane to the current plane.
 			// 2) shift the corresponding cubes; 			
 			for(int j = i; j < (int)emptyPlaneIndex; ++j){
 				if( (j+1) < iNumOfPlanes )
@@ -1561,11 +1516,13 @@ void PlayScreen::drawPlanes()
 	// Translate the coordinates, such that the origin is at the center of the scene.
 	glTranslatef(-0.5*cubeSize*iNumOfCellsX, -0.5*cubeSize*iNumOfPlanes, -0.5*cubeSize*iNumOfCellsZ);
 
+	// Left and right grids.
 	for(std::size_t i = 0; i < plane.size(); ++i){
 		plane[i]->drawLeftFaces();
 		plane[i]->drawRightFaces();
 	}
 
+	// Bottom grid.
 	if( (bottomPlane >= 0) && (bottomPlane < iNumOfPlanes) )
 		plane[bottomPlane]->drawBottomFaces();
 	if( (secondBottomPlane >= 0) && (secondBottomPlane < iNumOfPlanes) )
@@ -1674,12 +1631,12 @@ void PlayScreen::dropFigure(Logic& logic)
 
 bool PlayScreen::isRoundFinished(Logic& logic)
 {
-	currentFigure->getCubeIndeces(currentCells);// Define what cells should be highlighted
+	currentFigure->getCubeIndeces(currentCells);// Define what cells are highlighted.
 	// Get the index of the lowest plane of the figure.
 	iLowestCurrentPlane = currentCells[0].plane;
 	for(std::size_t i = 0; i < currentCells.size(); ++i)
 		iLowestCurrentPlane = min(iLowestCurrentPlane, currentCells[i].plane);
-	// Check the topmost empty plane. If it is the topmost one, then user lost.
+	// Check the topmost empty plane. If it is the last one, then user has lost.
 	// Because this means that the new figure touches the fixed cubes.
 	int iStart = 0;
 	int iEnd = plane.size();
