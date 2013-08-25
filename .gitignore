@@ -6,24 +6,25 @@ ipch
 *.suo
 *.user
 *.pdb
+*.txt
 
 # ignore in the intermediate commits
-*.md
-Release
-lib
-include
-data
-*.dll
+#*.md
+#Release
+#lib
+#include
+#data
+#*.dll
 
 # ignore in the final commit
-PingPong3D/*.dll
-PingPong3D/Release
+Tetris3D/*.dll
+Tetris3D/Release
 
-# allos in the final commit:
-# root Release
-# *.dll
-# include
-# lib
-# data
-# *.md
+# allow in the final commit:
+#Release
+#.dll
+#include
+#lib
+#data
+#*.md
 

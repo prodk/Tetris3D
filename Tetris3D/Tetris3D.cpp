@@ -3,7 +3,7 @@
 
 #include "GameApp.h"
 
-// Entry point.
+// Program entry point.
 int main(int argc, char **argv)
 {
 	GameApp game;

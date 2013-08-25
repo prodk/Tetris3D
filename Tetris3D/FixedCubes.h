@@ -1,4 +1,4 @@
-// FixedCubes.h - declarations of Cell, Plane and  FixedCubes classes.
+// FixedCubes.h - declarations of Cell, Plane and FixedCubes classes.
 // (c) Nikolay Prodanov, summer 2013, Juelich, Germany.
 #ifndef FIXED_CUBES_H
 #define FIXED_CUBES_H

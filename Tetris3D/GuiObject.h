@@ -20,7 +20,7 @@ public:
 	// Fixed implementation methods.
 	bool isPressed(float ptx, float pty);	// Confusion, it is not pressed, but under the cursor.
 	bool isPressed();						// True only if the object is really pressed.
-	void setPressed(bool pressed);
+	void setPressed(bool pressed);			// Set the button pressed.
 	void setFocus(bool focus);
 	bool hasFocus();
 	int getId() const;

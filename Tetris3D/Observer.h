@@ -5,7 +5,7 @@
 
 #include <vector>
 
-class Subject;			// Forward declaration.
+class Subject;			// Forward declaration of the subject.
 
 class Observer
 {

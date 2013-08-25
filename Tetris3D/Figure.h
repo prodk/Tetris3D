@@ -6,7 +6,7 @@
 
 class PlaneOfCells;
 
-typedef std::vector<std::tr1::shared_ptr<PlaneOfCells> > pPlanes;
+typedef std::vector<std::tr1::shared_ptr<PlaneOfCells> > pPlanes;// Pointers to planes.
 
 class Figure
 {
@@ -16,7 +16,7 @@ public:
 
 	// Functions to override.
 	virtual void draw();
-	virtual void drawAsNext();				// Is used when the figure is the next figure.
+	virtual void drawAsNext();				// Used when the figure is the next figure.
 	virtual void rotateX(pPlanes& planes);
 	virtual void rotateY(pPlanes& planes);
 	virtual void rotateZ(pPlanes& planes);
@@ -26,7 +26,7 @@ public:
 	void moveY(int factor, pPlanes& planes);
 	void moveZ(int factor, pPlanes& planes);
 
-	// Prevent from movement/rotation that results in a cube outside the scene.
+	// Prevent from movement/rotation that would result in a cube outside the scene.
 	bool testMoveX(int factor, pPlanes& planes);// True if the figure doesn't move outside the scene.
 	bool testMoveY(int factor, pPlanes& planes);// True if the figure doesn't move outside the scene.
 	bool testMoveZ(int factor, pPlanes& planes);// True if the figure doesn't move outside the scene.
@@ -67,7 +67,7 @@ public:
 		float size, int x, int p, int z);
 	virtual ~Lfigure(void);
 
-protected:
+private:
 	void createCubes();
 };
 
@@ -80,7 +80,7 @@ public:
 		float size, int x, int p, int z);
 	virtual ~Ofigure(void);
 
-protected:
+private:
 	void createCubes();
 };
 
@@ -93,7 +93,7 @@ public:
 		float size, int x, int p, int z);
 	virtual ~Sfigure(void);
 
-protected:
+private:
 	void createCubes();
 };
 
@@ -106,7 +106,7 @@ public:
 		float size, int x, int p, int z);
 	virtual ~Ifigure(void);
 
-protected:
+private:
 	void createCubes();
 };
 
@@ -119,7 +119,7 @@ public:
 		float size, int x, int p, int z);
 	virtual ~Tfigure(void);
 
-protected:
+private:
 	void createCubes();
 };
 

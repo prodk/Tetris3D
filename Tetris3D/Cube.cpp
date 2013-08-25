@@ -16,12 +16,12 @@ void Cube::draw()
 {
 	glPushMatrix();
 	material.setValues();
-	glTranslatef(vCenter[0], vCenter[1], vCenter[2]);	// Move the cube's center.
-	glutWireCube(size);
+	glTranslatef(vCenter[0], vCenter[1], vCenter[2]);	// Move to the cube's center.
+	glutWireCube(size);								// Draw the wireframe.
 
 	glPolygonMode(GL_FRONT, GL_FILL);
 	glMaterialf(GL_FRONT, GL_ALPHA, 0.1);
-	glutSolidCube(0.95*size);
+	glutSolidCube(0.95*size);						// Draw the solid cube, a bit smaller size.
 
 	glPopMatrix();
 }

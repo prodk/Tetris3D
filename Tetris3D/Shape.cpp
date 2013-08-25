@@ -1,9 +1,9 @@
-// Shape.cpp - abstract Shape class implementation.
+// Shape.cpp - implementation of the abstract Shape class.
 // (c) Nikolay Prodanov, summer 2013, Juelich, Germany.
 
 #include "Shape.h"
 
-// Global non-member function.
+// Global non-member functions.
 FMOD_RESULT playSound(FMOD::System *system, FMOD::Sound *sound, FMOD::Channel *channel)
 {
 	FMOD_RESULT result;

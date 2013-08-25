@@ -1,8 +1,8 @@
-// FixedCubes.cpp - implementations of Cell, Plane and  FixedCubes classes.
+// FixedCubes.cpp - implementations of Cell, Plane and FixedCubes classes.
 // (c) Nikolay Prodanov, summer 2013, Juelich, Germany.
 #include "FixedCubes.h"
 
-//----------------------------
+//-----------------------------
 // Cell.
 Cell::Cell()
 {

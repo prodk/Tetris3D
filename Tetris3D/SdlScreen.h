@@ -1,4 +1,4 @@
-// SdlScreen.h - declaration of the SdlScreen class and all its children.
+// SdlScreen.h - declaration of the SdlScreen class and all its offsprings.
 // (c) Nikolay Prodanov, summer 2013, Juelich, Germany.
 #ifndef SDL_SCREEN
 #define SDL_SCREEN
@@ -205,7 +205,6 @@ private:
 	void dropFigure(Logic& logic);		// Make the figure to fall down.
 	bool isRoundFinished(Logic& logic);	// True if the figure touches the highest filled plane 
 										// or the user annihilated 15 layers.
-
 	// Private members.
 private:
 	// Game logic.

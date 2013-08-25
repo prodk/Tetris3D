@@ -5,7 +5,6 @@
 
 // Most headers are in the "Material.h" and in "Shape.h".
 
-// Std.
 #include <cstdlib>		// Standard C functions, like fprintf.
 #include <ctime>		// time() function for random seed.
 #include <string>
@@ -33,8 +32,7 @@ private:
 	// Data load.
 	std::tr1::shared_ptr<TEXTURE> loadTexture(const std::string &fileName);// Factory function.
 	void loadSounds();
-	void loadFonts();
-	
+	void loadFonts();	
 	void shutDown();				// Clean up resources.
 	
 	// Sounds.

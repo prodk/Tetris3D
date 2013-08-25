@@ -23,7 +23,7 @@ void Material::setValues()
 	GLfloat matAmbient[] = {colorAmbient[0], colorAmbient[1], colorAmbient[2], flAlpha};
 	GLfloat matDiffuse[] = {colorDiffuse[0], colorDiffuse[1], colorDiffuse[2], flAlpha};
 	GLfloat matSpecular[] = {colorSpecular[0], colorSpecular[1], colorSpecular[2], flAlpha};
-
+	// Set teh light behavior.
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, matAmbient);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, matDiffuse);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, matSpecular);

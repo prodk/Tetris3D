@@ -29,7 +29,7 @@ public:
 	bool bNewRound;				// True if a new round has to be started.
 	bool bNewOptionsScreen;		// When we switch to the options screen, create new buttons.
 	bool bRoundFinished;		// To show the message when someone looses.
-	bool bNewFigure;
+	bool bNewFigure;			// True if a new figure has to be created.
 
 	std::size_t iRound;			// Current round.
 	std::size_t iSystemSize;	// Number of cells in x and z directions.
@@ -41,7 +41,7 @@ public:
 
 	const std::size_t iRoundMax;// Maximum number of rounds, it is == 1.
 	const int iMaxScore;		// Maximum number of planes that can be annihilated sequentially.
-	const std::size_t iSystemSizeMax;
+	const std::size_t iSystemSizeMax;// Maximum number of cells in lateral directions.
 };
 
 //----------------------------------

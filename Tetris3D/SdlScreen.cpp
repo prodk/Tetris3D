@@ -810,7 +810,7 @@ void PlayScreen::initMembers(const Logic &logic)
 	bottomPlane = 0;
 	secondBottomPlane = 0;
 	iLowestCurrentPlane = 0;
-	createPlanes();
+	createPlanes();						// Create planes of cells.
 
 	// Get a fresh set of cells that keep track of fixed cubes.
 	fixedCubes = 
@@ -1145,7 +1145,8 @@ void PlayScreen::play(Logic &logic, SDL_Event sdlEvent)
 	
 	// Process input if the round started and is going on.
 	if(!logic.bRoundFinished){
-		dropFigure(logic);				// Falling of the Figure with constant velocity.
+		if(!logic.bGamePaused)
+			dropFigure(logic);				// Falling of the Figure with constant velocity.
 		doInput(logic, sdlEvent);
 		if(!logic.bGamePaused)			// Do logic if the game is not paused.
 			doLogic(logic);
@@ -1372,7 +1373,7 @@ void PlayScreen::checkCollision(Logic &logic)
 			currentFigure.reset();
 			// Set the flag that says that there is a need for the new figure. 
 			logic.bNewFigure = true;
-			// Reset the current highlighted cells to not to show them for the deleted figure.
+			// Reset the current highlighted cells, don't show them for the deleted figure.
 			resetHighlightedCells(currentCells);			
 
 			break;
@@ -1445,6 +1446,8 @@ label:
 							int factor = -1;
 							fixedCubes->moveCubeY(factor, index);
 						}
+						// Reset all the highlighted cubes in the bottommost plane once again.
+						plane[0]->resetHighlightedCell(ix, iz);
 					}
 				}// End shift the cubes.	
 			}// End shift nonempty planes.
@@ -1468,8 +1471,6 @@ std::tr1::shared_ptr<Figure> PlayScreen::createNewFigure()
 	int iMinId = 0;
 	int iMaxId = 5;
 	int iFigId = (float)generateRand((float)iMinId, (float)iMaxId);
-
-	std::cerr << iFigId << std::endl;
 
 	switch( iFigId ){
 	case 0:	// Lfig.
@@ -1533,7 +1534,7 @@ void PlayScreen::drawPlanes()
 
 void PlayScreen::addCubes()
 {
-	std::vector<CellIndeces> ci;	// Cells where the cubes of the figure are located.
+	std::vector<CellIndeces> ci;		// Cells in which the cubes of the figure are located.
 	ci.resize(4);	
 	currentFigure->getCubeIndeces(ci);	// Get indeces of all the figure cubes in the cells.
 	

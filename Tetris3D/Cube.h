@@ -23,7 +23,7 @@ public:
 	vector_3d testRotateY(float angle);
 	vector_3d testRotateZ(float angle);
 
-	void moveX(int factor);
+	void moveX(int factor);		// Move in x direction.
 	void moveY(int factor);		// Move in y direction.
 	void moveZ(int factor);
 
@@ -33,7 +33,6 @@ public:
 	vector_3d testMoveZ(int factor);
 
 	void setOrigin(vector_3d vO);
-
 	const vector_3d& getCenter();
 
 protected:

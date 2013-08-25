@@ -1,4 +1,4 @@
-// Figure.cpp - implementation of Figure abstract class and its children.
+// Figure.cpp - implementation of Figure abstract class and its offsprings.
 // (c) Nikolay Prodanov, summer 2013, Juelich, Germany.
 #include "Figure.h"
 #include "FixedCubes.h"
@@ -25,6 +25,7 @@ void Figure::draw()
 void Figure::drawAsNext()
 {
 	glPushMatrix();
+	// Move to the left from the main scene.
 	glTranslatef(-cubeSize*(iNumOfCellsX + 1), -3.*cubeSize, 0.0);
 	for(std::size_t i = 0; i < cubes.size(); ++i)
 		cubes[i]->draw();
@@ -58,6 +59,7 @@ void Figure::moveZ(int factor, pPlanes& planes)
 	}
 }
 
+// Test the movement: move the cubes a bit and see whether they go outside the scene.
 bool Figure::testMoveX(int factor, pPlanes& planes)
 {
 	float n;
@@ -139,6 +141,7 @@ bool Figure::testMoveZ(int factor, pPlanes& planes)
 void Figure::rotateX(pPlanes& planes)
 {
 	// Rotate only after ensuring that the figure will not leave the borders of the scene.
+	// Otherwise, no rotation.
 	if( testRotateX(planes) ){
 		for(std::size_t i = 0; i < cubes.size(); ++i)
 			cubes[i]->rotateX(deltaAngleRad);
@@ -354,7 +357,7 @@ void Ofigure::createCubes()
 	// Left top cube.
 	std::size_t id = 0;
 	vector_3d center = vOrigin;
-	center[0] -= 0.5*cubeSize;	// Put the origin in the middle of the figure.
+	center[0] -= 0.5*cubeSize;	// Put the origin in the middle vertex of the figure.
 	center[1] += 0.5*cubeSize;	// Put the origin in the middle of the figure.
 	center[2] += 0.5*cubeSize;	// Put the origin in the middle of the figure.
 	cubes[id] = std::tr1::shared_ptr<Cube>( new Cube(cubeIndex, center, cubeSize) );

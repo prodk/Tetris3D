@@ -1,8 +1,8 @@
-// GuiObject.cpp - implementation of the GuiObject class and all its child classes.
+// GuiObject.cpp - implementation of the GuiObject class and all its offsprings.
 // (c) Nikolay Prodanov, summer 2013, Juelich, Germany.
 #include "GuiObject.h"
 
-//----------------------------------
+//---------------------------------
 // GuiObject class implementation.
 GuiObject::GuiObject(float xExt, float yExt, float wExt, float hExt,
 	std::size_t idExt, std::string n) :
@@ -216,7 +216,7 @@ void Button::drawUnpressed(TTF_Font *font)
 	drawText(name, txtX, y, txtW, h, font);
 }
 
-//----------------------------------
+//------------------------------------
 // OptionsButton class implementation.
 OptionsButton::OptionsButton(float xExt, float yExt, float wExt, float hExt, 
 	std::size_t idExt, std::string n, int tid, std::string cap) :

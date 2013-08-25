@@ -15,7 +15,7 @@ FMOD_RESULT playSound(FMOD::System *system, FMOD::Sound *sound, FMOD::Channel *c
 float generateRand(float start, float end);
 float generateRandomSignInterval(float start, float end);
 
-//----------------------------------
+//---------------------------------
 class Shape
 {
 public:

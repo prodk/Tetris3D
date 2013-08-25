@@ -42,6 +42,8 @@ private:
 	float flAlpha;
 };
 
+//---------------------------------
+// Texture structure.
 typedef struct
 {
     GLuint id;
